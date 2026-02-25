@@ -63,7 +63,8 @@ class SplashAnimatedText extends StatelessWidget {
             height: 1.2,
             shadows: [
               Shadow(
-                color: Colors.black.withOpacity(0.3),
+                color:
+                    const Color.fromARGB(255, 228, 226, 226).withOpacity(0.3),
                 offset: const Offset(0, 4),
                 blurRadius: 10,
               ),
@@ -141,7 +142,7 @@ class SplashAnimatedText extends StatelessWidget {
         ],
       ),
       child: Text(
-        '✦ منصة تعليم القرآن الكريم ✦',
+        '✦ منصةالمعلم لتعليم القرآن الكريم ✦',
         textAlign: TextAlign.center,
         style: TextStyles.font16RegularTextPrimary.copyWith(
           fontSize: 16.sp,

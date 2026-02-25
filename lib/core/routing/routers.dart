@@ -25,6 +25,9 @@ class Routes {
   /// مسار شاشة خطة الإنجاز
   static const String achievementPlan = '/achievementPlan';
 
+  /// مسار شاشة الإشعارات
+  static const String notifications = '/notifications';
+
   /// مسار شاشة الإعدادات
   static const String settings = '/settings';
   

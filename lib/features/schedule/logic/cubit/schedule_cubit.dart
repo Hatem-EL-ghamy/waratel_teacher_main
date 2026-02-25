@@ -1,14 +1,102 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../data/repos/schedule_repo.dart';
+import '../../data/models/schedule_models.dart';
 import 'schedule_state.dart';
 
 class ScheduleCubit extends Cubit<ScheduleState> {
-  ScheduleCubit() : super(ScheduleInitial());
+  final ScheduleRepo scheduleRepo;
 
-  void loadSchedule() {
+  ScheduleCubit(this.scheduleRepo) : super(ScheduleInitial());
+
+  Map<String, List<SlotModel>> calendar = {};
+
+  Future<void> loadSchedule({int page = 1, int perPage = 15}) async {
     emit(ScheduleLoading());
-    // Mock loading
-    Future.delayed(const Duration(seconds: 1), () {
-      emit(ScheduleLoaded([])); // Empty list for now
-    });
+    try {
+      final response =
+          await scheduleRepo.getMySlots(page: page, perPage: perPage);
+
+      if (response.status && response.data != null) {
+        calendar = response.data!.calendar;
+        emit(ScheduleLoaded(calendar, response.data!.pagination));
+      } else if (response.status && response.data == null) {
+        calendar = {};
+        emit(ScheduleLoaded(calendar, null));
+      } else {
+        emit(ScheduleError(response.message));
+      }
+    } catch (e) {
+      if (!isClosed) {
+        emit(ScheduleError(e.toString().replaceFirst('Exception: ', '')));
+      }
+    }
+  }
+
+  Future<void> addSlots({
+    required String date,
+    required List<Map<String, String>> slots,
+  }) async {
+    emit(AddSlotsLoading());
+    try {
+      final List<String> startTimes = slots.map((s) => s['start_time']!).toList();
+      final List<String> endTimes = slots.map((s) => s['end_time']!).toList();
+
+      final response = await scheduleRepo.addBatchSlots(
+        date: date,
+        startTimes: startTimes,
+        endTimes: endTimes,
+      );
+
+      if (!response.status) {
+        throw Exception(response.message);
+      }
+
+      if (!isClosed) {
+        emit(AddSlotsSuccess('تم إضافة المواعيد بنجاح'));
+      }
+      await loadSchedule();
+    } catch (e) {
+      if (!isClosed) {
+        emit(AddSlotsError(e.toString().replaceFirst('Exception: ', '')));
+      }
+    }
+  }
+
+  Future<void> deleteSlot(int slotId) async {
+    emit(DeleteSlotLoading());
+    try {
+      final response = await scheduleRepo.deleteSlot(slotId);
+
+      if (response.status) {
+        emit(DeleteSlotSuccess(response.message));
+        // Reload schedule after deleting
+        await loadSchedule();
+      } else {
+        emit(DeleteSlotError(response.message));
+      }
+    } catch (e) {
+      if (!isClosed) {
+        emit(DeleteSlotError(e.toString().replaceFirst('Exception: ', '')));
+      }
+    }
+  }
+
+  Future<void> deleteSlotsByDay(String date) async {
+    emit(DeleteSlotLoading());
+    try {
+      final response = await scheduleRepo.deleteSlotsByDay(date);
+
+      if (response.status) {
+        emit(DeleteSlotSuccess(response.message));
+        // Reload schedule after deleting
+        await loadSchedule();
+      } else {
+        emit(DeleteSlotError(response.message));
+      }
+    } catch (e) {
+      if (!isClosed) {
+        emit(DeleteSlotError(e.toString().replaceFirst('Exception: ', '')));
+      }
+    }
   }
 }

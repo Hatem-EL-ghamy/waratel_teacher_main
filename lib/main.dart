@@ -1,6 +1,6 @@
+import 'waratel_app.dart';
 import 'package:flutter/material.dart';
 import 'core/di/dependency_injection.dart';
-import 'waratel_app.dart';
 
 /// نقطة البداية الرئيسية للتطبيق
 /// هذا الملف يحتوي فقط على كود التشغيل الأساسي

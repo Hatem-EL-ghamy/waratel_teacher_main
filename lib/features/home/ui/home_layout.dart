@@ -1,22 +1,55 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/theming/colors.dart';
-import '../../../../core/widgets/custom_drawer.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../logic/cubit/home_cubit.dart';
 import '../logic/cubit/home_state.dart';
+import '../../../../core/theming/colors.dart';
+import '../../../../core/routing/routers.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/widgets/custom_drawer.dart';
 import '../../../../core/di/dependency_injection.dart';
-
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/widgets/draggable_floating_button.dart';
+import '../../../../features/profile/logic/cubit/profile_cubit.dart';
+import '../../../../features/profile/logic/cubit/profile_state.dart';
+import '../../../../features/ads/logic/cubit/ads_cubit.dart';
+
 
 class HomeLayout extends StatelessWidget {
   const HomeLayout({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => getIt<HomeCubit>()..getAds(),
-      child: BlocBuilder<HomeCubit, HomeState>(
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider.value(
+          value: getIt<HomeCubit>(),
+        ),
+        // BlocProvider.value لأن ProfileCubit هو LazySingleton —
+        // BlocProvider.value لا يُغلق الـ Cubit عند مغادرة الشاشة
+        BlocProvider.value(
+          value: getIt<ProfileCubit>(),
+        ),
+        BlocProvider(
+          create: (_) => getIt<AdsCubit>()..getAds(),
+        ),
+      ],
+      child: BlocListener<ProfileCubit, ProfileState>(
+        listener: (context, state) {
+          if (state is LogoutSuccess) {
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              Routes.login,
+              (route) => false,
+            );
+          } else if (state is LogoutError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.error),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+        child: BlocBuilder<HomeCubit, HomeState>(
         builder: (context, state) {
           final cubit = context.read<HomeCubit>();
           return Stack(
@@ -102,6 +135,6 @@ class HomeLayout extends StatelessWidget {
           );
         },
       ),
-    );
+     ) );
   }
 }

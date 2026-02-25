@@ -12,45 +12,40 @@ class WaratelApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ScreenUtilInit(
-      // تصميم التطبيق بناءً على حجم الشاشة
-      designSize: const Size(375, 812),
-      minTextAdapt: true,
-      splitScreenMode: true,
-      builder: (context, child) {
-        return MaterialApp(
-          // ========== إعدادات التطبيق ==========
-          title: 'ورتّل للمعلم',
-          debugShowCheckedModeBanner: false,
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: ScreenUtilInit(
+        // تصميم التطبيق بناءً على حجم الشاشة
+        designSize: const Size(375, 812),
+        minTextAdapt: true,
+        splitScreenMode: true,
+        builder: (context, child) {
+          return MaterialApp(
+            // ========== إعدادات التطبيق ==========
+            title: 'ورتّل للمعلم',
+            debugShowCheckedModeBanner: false,
 
-          // ========== الثيم ==========
-          theme: AppStyles.lightTheme,
+            // ========== الثيم ==========
+            theme: AppStyles.lightTheme,
 
-          // ========== اللغة والاتجاه ==========
-          locale: const Locale('ar', 'SA'),
-          supportedLocales: const [
-            Locale('ar', 'SA'), // العربية
-            Locale('en', 'US'), // الإنجليزية
-          ],
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+            // ========== اللغة والاتجاه ==========
+            locale: const Locale('ar', 'SA'),
+            supportedLocales: const [
+              Locale('ar', 'SA'), // العربية
+              Locale('en', 'US'), // الإنجليزية
+            ],
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
 
-          // ========== التوجيه ==========
-          initialRoute: Routes.splash,
-          onGenerateRoute: AppRouter.generateRoute,
-
-          // ========== Builder ==========
-          builder: (context, widget) {
-            return Directionality(
-              textDirection: TextDirection.rtl,
-              child: widget!,
-            );
-          },
-        );
-      },
+            // ========== التوجيه ==========
+            initialRoute: Routes.splash,
+            onGenerateRoute: AppRouter.generateRoute,
+          );
+        },
+      ),
     );
   }
 }

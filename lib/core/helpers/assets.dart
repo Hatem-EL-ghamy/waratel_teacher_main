@@ -9,7 +9,7 @@ class AppAssets {
   static const String _imagesPath = 'assets/images';
 
   /// شعار التطبيق
-  static const String logo = '$_imagesPath/logo.png';
+  static const String logo = '$_iconsPath/ورتل-png-الوان-2 (1).png';
 
   /// صورة الخلفية
   static const String background = '$_imagesPath/background.png';
@@ -59,8 +59,8 @@ class AppAssets {
   /// خط Cairo
   static const String cairoFont = 'Cairo';
 
-  /// شعار ورتل الجديد (wrtlv1)
-  static const String appLogo = '$_iconsPath/wrtlv1.png';
+  /// شعار ورتل الجديد (wartel_logo)
+  static const String appLogo = '$_iconsPath/ورتل-png-الوان-2 (1).png';
 }
 
 /// امتداد لتسهيل استخدام الصور

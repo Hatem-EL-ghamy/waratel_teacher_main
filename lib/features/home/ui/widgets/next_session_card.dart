@@ -161,9 +161,18 @@ class _NextSessionCardState extends State<NextSessionCard> {
 
               // Enter Button (Left in RTL)
               InkWell(
-                onTap: () {
-                   Navigator.pushNamed(context, '/call'); // Use string matching Routes.call value
-                },
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/call',
+                      arguments: {
+                        'token': 'mock_token',
+                        'channelName': 'mock_channel',
+                        'uid': 123,
+                        'studentName': teacherName,
+                      },
+                    );
+                  },
                 child: Container(
                    width: 50.w,
                    height: 50.w,

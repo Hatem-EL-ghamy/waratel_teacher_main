@@ -1,60 +1,103 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../core/theming/colors.dart';
 import '../logic/cubit/profile_cubit.dart';
+import '../logic/cubit/profile_state.dart';
+import '../data/models/profile_models.dart';
+import '../../../../core/theming/colors.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/dependency_injection.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => getIt<ProfileCubit>(),
+    return BlocProvider.value(
+      value: getIt<ProfileCubit>(),
       child: DefaultTabController(
         length: 3,
-        child: Scaffold(
-          backgroundColor: ColorsManager.backgroundColor,
-          body: Column(
-            children: [
-              // Header Section
-              _buildHeader(),
-              
-              // Tab Bar Section
-              Container(
-                color: Colors.white,
-                child: TabBar(
-                  labelColor: ColorsManager.primaryColor,
-                  unselectedLabelColor: Colors.grey,
-                  indicatorColor: ColorsManager.primaryColor,
-                  indicatorWeight: 3.h,
-                  labelStyle: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
-                  tabs: const [
-                    Tab(text: 'التقييمات'),
-                    Tab(text: 'المعلومات'),
-                    Tab(text: 'الخبرة'),
-                  ],
+        child: BlocBuilder<ProfileCubit, ProfileState>(
+          builder: (context, state) {
+            if (state is ProfileLoading) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            if (state is ProfileError) {
+              return Scaffold(
+                body: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error_outline, size: 60.sp, color: Colors.red),
+                      SizedBox(height: 16.h),
+                      Text(state.error,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 14.sp)),
+                      SizedBox(height: 16.h),
+                      ElevatedButton(
+                        onPressed: () =>
+                            context.read<ProfileCubit>().getProfile(),
+                        child: const Text('إعادة المحاولة'),
+                      ),
+                    ],
+                  ),
                 ),
+              );
+            }
+
+            final profile = state is ProfileLoaded
+                ? state.profileResponse
+                : context.read<ProfileCubit>().profileData;
+            final application = profile?.profile?.application;
+            final user = profile?.user;
+
+            return Scaffold(
+              backgroundColor: ColorsManager.backgroundColor,
+              body: Column(
+                children: [
+                  // Header
+                  _buildHeader(context, user, profile),
+
+                  // Tab Bar
+                  Container(
+                    color: Colors.white,
+                    child: TabBar(
+                      labelColor: ColorsManager.primaryColor,
+                      unselectedLabelColor: Colors.grey,
+                      indicatorColor: ColorsManager.primaryColor,
+                      indicatorWeight: 3.h,
+                      labelStyle: TextStyle(
+                          fontSize: 14.sp, fontWeight: FontWeight.bold),
+                      tabs: const [
+                        Tab(text: 'التقييمات'),
+                        Tab(text: 'المعلومات'),
+                        Tab(text: 'الخبرة'),
+                      ],
+                    ),
+                  ),
+
+                  Expanded(
+                    child: TabBarView(
+                      children: [
+                        _buildRatingsTab(),
+                        _buildInfoTab(application, user),
+                        _buildExperienceTab(context, application, profile),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              
-              Expanded(
-                child: TabBarView(
-                  children: [
-                    _buildRatingsTab(),
-                    _buildInfoTab(),
-                    _buildExperienceTab(),
-                  ],
-                ),
-              )
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(
+      BuildContext context, ProfileUser? user, ProfileResponse? profile) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.only(top: 50.h, bottom: 25.h),
@@ -67,32 +110,48 @@ class ProfileScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
+          // Profile Photo
           Container(
             decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 3.w)),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 3.w),
+            ),
             child: CircleAvatar(
               radius: 45.r,
               backgroundColor: Colors.white.withOpacity(0.2),
-              child: Icon(Icons.person, size: 55.sp, color: Colors.white),
+              backgroundImage: profile?.profile?.profilePhotoPath != null
+                  ? NetworkImage(
+                      'https://wartil.com/storage/${profile!.profile!.profilePhotoPath}')
+                  : null,
+              child: profile?.profile?.profilePhotoPath == null
+                  ? Icon(Icons.person, size: 55.sp, color: Colors.white)
+                  : null,
             ),
           ),
           SizedBox(height: 12.h),
+
+          // Name
           Text(
-            'حاتم ناصر اسماعيل',
+            user?.name ?? 'المعلم',
+            textDirection: TextDirection.rtl,
+            textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.white,
               fontSize: 20.sp,
               fontWeight: FontWeight.bold,
             ),
           ),
-          SizedBox(height: 8.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(5, (index) => 
-              Icon(Icons.star, color: ColorsManager.accentColor, size: 20.sp)
+          SizedBox(height: 4.h),
+
+          // Salary & Minutes
+          if (profile?.profile != null)
+            Text(
+              'الراتب: ${profile!.profile!.salary} | الدقائق: ${profile.profile!.minutes}',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.8),
+                fontSize: 12.sp,
+              ),
             ),
-          )
         ],
       ),
     );
@@ -114,86 +173,92 @@ class ProfileScreen extends StatelessWidget {
         SizedBox(height: 15.h),
         _buildCommentCard(
           name: 'بحر زكريا',
-          comment: 'مميز جداً والله، بارك الله في علمه ووقت الشيخ حاتم. أسلوب متميز في التحفيظ والتلقين.',
+          comment:
+              'مميز جداً والله، بارك الله في علمه ووقت الشيخ. أسلوب متميز في التحفيظ والتلقين.',
           date: '15/05/2024 07:06 م',
         ),
       ],
     );
   }
 
-  Widget _buildInfoTab() {
+  Widget _buildInfoTab(TeacherApplication? app, ProfileUser? user) {
     return ListView(
       padding: EdgeInsets.all(16.w),
       children: [
         _buildSectionTitle('البيانات الشخصية'),
         _buildInfoCard([
-          _buildInfoRow(Icons.person_outline, 'الاسم الثلاثي', 'حاتم ناصر اسماعيل'),
-          _buildInfoRow(Icons.wc, 'الجنس', 'ذكر'),
-          _buildInfoRow(Icons.email_outlined, 'البريد الإلكتروني', 'hatem@example.com'),
-          _buildInfoRow(Icons.phone_android, 'رقم الواتساب', '+20 1234567890'),
+          _buildInfoRow(
+              Icons.person_outline, 'الاسم الثلاثي', app?.fullName ?? '-'),
+          _buildInfoRow(Icons.wc, 'الجنس',
+              app?.gender == 'male' ? 'ذكر' : (app?.gender ?? '-')),
+          _buildInfoRow(
+              Icons.email_outlined, 'البريد الإلكتروني', user?.email ?? '-'),
+          _buildInfoRow(Icons.phone_android, 'رقم الواتساب', app?.phone ?? '-'),
         ]),
         SizedBox(height: 20.h),
         _buildSectionTitle('الموقع والسكن'),
         _buildInfoCard([
-          _buildInfoRow(Icons.public, 'بلد الأصل', 'مصر'),
-          _buildInfoRow(Icons.location_on_outlined, 'مكان الإقامة', 'السعودية - الرياض'),
+          _buildInfoRow(Icons.public, 'بلد الأصل', app?.originCountry ?? '-'),
+          _buildInfoRow(Icons.location_on_outlined, 'مكان الإقامة',
+              app?.residenceLocation ?? '-'),
         ]),
         SizedBox(height: 20.h),
         _buildSectionTitle('الخلفية العلمية'),
         _buildInfoCard([
-          _buildInfoRow(Icons.school_outlined, 'المؤهل العلمي', 'بكالوريوس أصول دين - جامعة الأزهر'),
+          _buildInfoRow(Icons.school_outlined, 'المؤهل العلمي',
+              app?.qualification ?? '-'),
+        ]),
+        SizedBox(height: 20.h),
+        _buildSectionTitle('اللغات'),
+        _buildInfoCard([
+          _buildInfoRow(
+              Icons.language, 'اللغات', app?.languages.join('، ') ?? '-'),
         ]),
       ],
     );
   }
 
-  Widget _buildExperienceTab() {
+  Widget _buildExperienceTab(
+      BuildContext context, TeacherApplication? app, ProfileResponse? profile) {
     return ListView(
       padding: EdgeInsets.all(16.w),
       children: [
         _buildSectionTitle('المسارات التدريسية'),
         SizedBox(height: 10.h),
-        Wrap(
-          spacing: 8.w,
-          runSpacing: 8.h,
-          children: [
-            _buildChip('حفظ وتلقين'),
-            _buildChip('تصحيح تلاوة'),
-            _buildChip('إقراء وإجازة'),
-            _buildChip('تأسيس قراءة وكتابة'),
-          ],
-        ),
-        SizedBox(height: 25.h),
-        _buildSectionTitle('اللغات التي أجيدها'),
-        SizedBox(height: 10.h),
-        Wrap(
-          spacing: 8.w,
-          runSpacing: 8.h,
-          children: [
-            _buildChip('اللغة العربية', isAccent: true),
-            _buildChip('اللغة الإنجليزية'),
-          ],
-        ),
+        if (profile?.tracks.isNotEmpty == true)
+          Wrap(
+            spacing: 8.w,
+            runSpacing: 8.h,
+            children: profile!.tracks.map((t) => _buildChip(t.name)).toList(),
+          )
+        else
+          Text('لم يتم تحديد مسارات بعد',
+              style: TextStyle(fontSize: 13.sp, color: Colors.grey)),
         SizedBox(height: 25.h),
         _buildSectionTitle('الخبرة والقدرات'),
         _buildInfoCard([
-          _buildInfoRow(Icons.history, 'سنوات الخبرة', '8 سنوات'),
-          _buildInfoRow(Icons.access_time, 'ساعات العمل المتوقعة', '6 ساعات يومياً'),
-          _buildInfoRow(Icons.laptop_chromebook, 'التعليم عن بعد', 'متقدم'),
-          _buildInfoRow(Icons.speed, 'جودة الإنترنت', 'ممتازة'),
-          _buildInfoRow(Icons.settings_suggest, 'المهارات التقنية', 'احترافي'),
+          _buildInfoRow(Icons.history, 'سنوات الخبرة',
+              '${app?.experienceYears ?? 0} سنوات'),
+          _buildInfoRow(Icons.access_time, 'ساعات العمل اليومية',
+              '${app?.workHours ?? 0} ساعات'),
+          _buildInfoRow(Icons.laptop_chromebook, 'التعليم عن بعد',
+              _translateLevel(app?.onlineExperience)),
+          _buildInfoRow(Icons.speed, 'جودة الإنترنت',
+              _translateLevel(app?.internetQuality)),
+          _buildInfoRow(Icons.settings_suggest, 'المهارات التقنية',
+              _translateLevel(app?.techSkills)),
         ]),
-        SizedBox(height: 25.h),
-        _buildSectionTitle('المرفقات والشهادات'),
-        SizedBox(height: 10.h),
-        InkWell(
-          onTap: () {},
-          child: Container(
+        SizedBox(height: 20.h),
+        if (app?.cvPdfPath != null) ...[
+          _buildSectionTitle('المرفقات والشهادات'),
+          SizedBox(height: 10.h),
+          Container(
             padding: EdgeInsets.all(15.w),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12.r),
-              border: Border.all(color: ColorsManager.primaryColor.withOpacity(0.3)),
+              border: Border.all(
+                  color: ColorsManager.primaryColor.withOpacity(0.3)),
             ),
             child: Row(
               children: [
@@ -203,10 +268,12 @@ class ProfileScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('السيرة الذاتية وشهادات الإجازة', 
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.sp)),
-                      Text('ملف PDF واحد (حد أقصى 10MB)', 
-                        style: TextStyle(color: Colors.grey, fontSize: 11.sp)),
+                      Text('السيرة الذاتية وشهادات الإجازة',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 13.sp)),
+                      Text('ملف PDF',
+                          style:
+                              TextStyle(color: Colors.grey, fontSize: 11.sp)),
                     ],
                   ),
                 ),
@@ -214,10 +281,27 @@ class ProfileScreen extends StatelessWidget {
               ],
             ),
           ),
-        ),
+        ],
         SizedBox(height: 20.h),
       ],
     );
+  }
+
+  String _translateLevel(String? level) {
+    switch (level) {
+      case 'expert':
+        return 'خبير';
+      case 'intermediate':
+        return 'متوسط';
+      case 'beginner':
+        return 'مبتدئ';
+      case 'good':
+        return 'جيد';
+      case 'excellent':
+        return 'ممتاز';
+      default:
+        return level ?? '-';
+    }
   }
 
   Widget _buildSectionTitle(String title) {
@@ -259,12 +343,17 @@ class ProfileScreen extends StatelessWidget {
         children: [
           Icon(icon, color: ColorsManager.primaryColor, size: 22.sp),
           SizedBox(width: 15.w),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(label, style: TextStyle(color: Colors.grey, fontSize: 12.sp)),
-              Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp)),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: TextStyle(color: Colors.grey, fontSize: 12.sp)),
+                Text(value,
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 14.sp)),
+              ],
+            ),
           ),
         ],
       ),
@@ -294,10 +383,12 @@ class ProfileScreen extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500)),
+        Text(label,
+            style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500)),
         Row(
           children: [
-            Text(rating.toString(), style: TextStyle(color: Colors.grey, fontSize: 14.sp)),
+            Text(rating.toString(),
+                style: TextStyle(color: Colors.grey, fontSize: 14.sp)),
             SizedBox(width: 10.w),
             Row(
               children: List.generate(5, (index) {
@@ -316,7 +407,8 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCommentCard({required String name, required String comment, required String date}) {
+  Widget _buildCommentCard(
+      {required String name, required String comment, required String date}) {
     return Container(
       padding: EdgeInsets.all(15.w),
       decoration: BoxDecoration(
@@ -340,8 +432,11 @@ class ProfileScreen extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp)),
-                  Text(date, style: TextStyle(color: Colors.grey, fontSize: 11.sp)),
+                  Text(name,
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 14.sp)),
+                  Text(date,
+                      style: TextStyle(color: Colors.grey, fontSize: 11.sp)),
                 ],
               ),
             ],

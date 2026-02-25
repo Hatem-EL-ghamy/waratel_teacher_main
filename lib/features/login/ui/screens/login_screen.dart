@@ -40,106 +40,130 @@ class LoginScreen extends StatelessWidget {
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
                 child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      SizedBox(height: 40.h),
+                  child: Form(
+                    key: cubit.formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        SizedBox(height: 40.h),
 
-                      // Logo
-                      Center(
-                        child: Container(
-                          padding: EdgeInsets.all(16.w),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppColors.primaryColor,
-                              width: 2,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
+                        // Logo
+                        Center(
+                          child: Container(
+                            padding: EdgeInsets.all(16.w),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: AppColors.primaryColor,
+                                width: 2,
                               ),
-                            ],
-                          ),
-                          child: Image.asset(
-                            AppAssets.appLogo,
-                            height: 100.h,
-                            width: 100.h,
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                      ),
-                      
-                      SizedBox(height: 16.h),
-                      
-                      // Subtitle
-                      Text(
-                        'قم بتسجيل الدخول',
-                        textAlign: TextAlign.center,
-                        style: TextStyles.font16RegularTextPrimary.copyWith(
-                          color: AppColors.textSecondaryColor,
-                        ),
-                      ),
-
-                      SizedBox(height: 60.h),
-
-                      // Email Field
-                      _buildTextField(
-                        label: 'البريد الإلكتروني',
-                        icon: Icons.email_outlined,
-                        keyboardType: TextInputType.emailAddress,
-                        controller: cubit.emailController,
-                      ),
-
-                      SizedBox(height: 24.h),
-
-                      // Password Field
-                      _buildTextField(
-                        label: 'كلمة المرور',
-                        icon: Icons.lock_outline,
-                        isPassword: true,
-                        isObscure: cubit.isPasswordObscure,
-                        controller: cubit.passwordController,
-                        suffixIcon: cubit.suffixIcon,
-                        onVisibilityToggle: () {
-                          cubit.changePasswordVisibility();
-                        },
-                      ),
-
-                      SizedBox(height: 40.h),
-
-                      // Login Button
-                      ElevatedButton(
-                        onPressed: () {
-                          if (state is! LoginLoading) {
-                            cubit.login();
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryColor,
-                          padding: EdgeInsets.symmetric(vertical: 16.h),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.r),
-                          ),
-                          elevation: 2,
-                        ),
-                        child: state is LoginLoading 
-                          ? SizedBox(
-                              height: 24.h,
-                              width: 24.w,
-                              child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                            )
-                          : Text(
-                              'تسجيل الدخول',
-                              style: TextStyles.font16SemiBoldWhite.copyWith(
-                                fontSize: 18.sp,
-                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
-                      ),
-                    ],
+                            child: Image.asset(
+                              AppAssets.appLogo,
+                              height: 100.h,
+                              width: 100.h,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
+
+                        SizedBox(height: 16.h),
+
+                        // Subtitle
+                        Text(
+                          'قم بتسجيل الدخول',
+                          textAlign: TextAlign.center,
+                          style: TextStyles.font16RegularTextPrimary.copyWith(
+                            color: AppColors.textSecondaryColor,
+                          ),
+                        ),
+
+                        SizedBox(height: 60.h),
+
+                        // Email Field
+                        _buildTextField(
+                          label: 'البريد الإلكتروني',
+                          icon: Icons.email_outlined,
+                          keyboardType: TextInputType.emailAddress,
+                          controller: cubit.emailController,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'يرجى إدخال البريد الإلكتروني';
+                            }
+                            if (!RegExp(r'^[\w-.]+@([\w-]+\.)+[\w]{2,4}$')
+                                .hasMatch(value.trim())) {
+                              return 'بريد إلكتروني غير صحيح';
+                            }
+                            return null;
+                          },
+                        ),
+
+                        SizedBox(height: 24.h),
+
+                        // Password Field
+                        _buildTextField(
+                          label: 'كلمة المرور',
+                          icon: Icons.lock_outline,
+                          isPassword: true,
+                          isObscure: cubit.isPasswordObscure,
+                          controller: cubit.passwordController,
+                          suffixIcon: cubit.suffixIcon,
+                          onVisibilityToggle: () {
+                            cubit.changePasswordVisibility();
+                          },
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'يرجى إدخال كلمة المرور';
+                            }
+                            if (value.trim().length < 6) {
+                              return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+                            }
+                            return null;
+                          },
+                        ),
+
+                        SizedBox(height: 40.h),
+
+                        // Login Button
+                        ElevatedButton(
+                          onPressed: () {
+                            if (state is! LoginLoading) {
+                              cubit.login();
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryColor,
+                            padding: EdgeInsets.symmetric(vertical: 16.h),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.r),
+                            ),
+                            elevation: 2,
+                          ),
+                          child: state is LoginLoading
+                              ? SizedBox(
+                                  height: 24.h,
+                                  width: 24.w,
+                                  child: const CircularProgressIndicator(
+                                      color: Colors.white, strokeWidth: 2),
+                                )
+                              : Text(
+                                  'تسجيل الدخول',
+                                  style:
+                                      TextStyles.font16SemiBoldWhite.copyWith(
+                                    fontSize: 18.sp,
+                                  ),
+                                ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -159,6 +183,7 @@ class LoginScreen extends StatelessWidget {
     TextInputType keyboardType = TextInputType.text,
     TextEditingController? controller,
     IconData? suffixIcon,
+    String? Function(String?)? validator,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -176,7 +201,15 @@ class LoginScreen extends StatelessWidget {
         controller: controller,
         obscureText: isObscure ?? false,
         keyboardType: keyboardType,
-        style: TextStyles.font16RegularTextPrimary,
+        validator: validator,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+        textDirection: TextDirection.rtl,
+        textAlign: TextAlign.right,
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 16.sp,
+          fontFamily: 'Cairo',
+        ),
         decoration: InputDecoration(
           hintText: label,
           hintStyle: TextStyles.font14RegularTextSecondary,
@@ -209,6 +242,14 @@ class LoginScreen extends StatelessWidget {
               color: AppColors.primaryColor,
               width: 1.5,
             ),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.r),
+            borderSide: const BorderSide(color: Colors.red, width: 1),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.r),
+            borderSide: const BorderSide(color: Colors.red, width: 1.5),
           ),
           contentPadding: EdgeInsets.symmetric(
             horizontal: 16.w,

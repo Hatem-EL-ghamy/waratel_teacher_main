@@ -6,15 +6,66 @@ import '../logic/cubit/achievement_plan_cubit.dart';
 import '../logic/cubit/achievement_plan_state.dart';
 import '../../../../core/di/dependency_injection.dart';
 
-class AchievementPlanScreen extends StatelessWidget {
+class AchievementPlanScreen extends StatefulWidget {
   const AchievementPlanScreen({super.key});
+
+  @override
+  State<AchievementPlanScreen> createState() => _AchievementPlanScreenState();
+}
+
+class _AchievementPlanScreenState extends State<AchievementPlanScreen> {
+  final TextEditingController _workHoursController = TextEditingController();
+
+  @override
+  void dispose() {
+    _workHoursController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => getIt<AchievementPlanCubit>(),
-      child: BlocBuilder<AchievementPlanCubit, AchievementPlanState>(
+      child: BlocConsumer<AchievementPlanCubit, AchievementPlanState>(
+        listener: (context, state) {
+          if (state is AchievementPlanSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.green,
+              ),
+            );
+          } else if (state is AchievementPlanError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.error),
+                backgroundColor: Colors.red,
+              ),
+            );
+          } else if (state is AchievementPlanLoaded) {
+            _workHoursController.text = state.preferences.workHoursPerWeek.toString();
+          }
+        },
         builder: (context, state) {
+          final cubit = context.read<AchievementPlanCubit>();
+          
+          if (state is AchievementPlanLoading) {
+            return Scaffold(
+              backgroundColor: ColorsManager.backgroundColor,
+              appBar: AppBar(
+                title: const Text('خطة الإنجاز'),
+                backgroundColor: ColorsManager.primaryColor,
+                foregroundColor: Colors.white,
+                centerTitle: true,
+              ),
+              body: const Center(child: CircularProgressIndicator()),
+            );
+          }
+
+          final prefs = state is AchievementPlanLoaded 
+              ? state.preferences 
+              : cubit.currentPreferences;
+
           return Scaffold(
             backgroundColor: ColorsManager.backgroundColor,
             appBar: AppBar(
@@ -29,34 +80,41 @@ class AchievementPlanScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildSection(
+                    context: context,
                     title: 'تفضيلات المسار التعليمي',
-                    percentage: '0%',
-                    children: [
-                      _buildPreferenceItem('تلقين', '10%'),
-                      _buildPreferenceItem('تلاوة', '20%'),
-                      _buildPreferenceItem('تسميع', '40%'),
-                      _buildPreferenceItem('إقراء وإجازة', '30%', isWide: true),
-                    ],
+                    items: {
+                      'تلقين': prefs.learningPaths['تلقين'],
+                      'تلاوة': prefs.learningPaths['تلاوة'],
+                      'تسميع': prefs.learningPaths['تسميع'],
+                      'إقراء وإجازة': prefs.learningPaths['إقراء وإجازة'],
+                    },
+                    onToggle: (key) => cubit.toggleLearningPath(key),
+                    onAdjust: (key, delta) => cubit.adjustPercentage('learningPaths', key, delta),
+                    isWide: (key) => key == 'إقراء وإجازة',
                   ),
                   SizedBox(height: 20.h),
                   _buildSection(
+                    context: context,
                     title: 'تفضيلات الفئة العمرية',
-                    percentage: '0%',
-                    children: [
-                      _buildPreferenceItem('5-12', '20%'),
-                      _buildPreferenceItem('13-59', '60%'),
-                      _buildPreferenceItem('+60', '20%'),
-                    ],
+                    items: {
+                      '5-12': prefs.ageGroups['5-12'],
+                      '13-59': prefs.ageGroups['13-59'],
+                      '+60': prefs.ageGroups['+60'],
+                    },
+                    onToggle: (key) => cubit.toggleAgeGroup(key),
+                    onAdjust: (key, delta) => cubit.adjustPercentage('ageGroups', key, delta),
                   ),
                   SizedBox(height: 20.h),
                   _buildSection(
+                    context: context,
                     title: 'تفضيلات مستويات الطالب',
-                    percentage: '0%',
-                    children: [
-                      _buildPreferenceItem('مبتدئ', '30%'),
-                      _buildPreferenceItem('متوسط', '50%'),
-                      _buildPreferenceItem('متقدم', '20%'),
-                    ],
+                    items: {
+                      'مبتدئ': prefs.studentLevels['مبتدئ'],
+                      'متوسط': prefs.studentLevels['متوسط'],
+                      'متقدم': prefs.studentLevels['متقدم'],
+                    },
+                    onToggle: (key) => cubit.toggleStudentLevel(key),
+                    onAdjust: (key, delta) => cubit.adjustPercentage('studentLevels', key, delta),
                   ),
                   SizedBox(height: 20.h),
                   Text(
@@ -65,38 +123,37 @@ class AchievementPlanScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 10.h),
                   TextField(
+                    controller: _workHoursController,
                     decoration: InputDecoration(
-                        hintText: '20',
-                        fillColor: Colors.white,
-                        filled: true,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.r),
-                          borderSide: const BorderSide(color: Colors.grey),
-                        )
+                      hintText: '20',
+                      fillColor: Colors.white,
+                      filled: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.r),
+                        borderSide: const BorderSide(color: Colors.grey),
+                      ),
                     ),
                     keyboardType: TextInputType.number,
+                    onChanged: (value) {
+                      final hours = int.tryParse(value) ?? 0;
+                      cubit.updateWorkHours(hours);
+                    },
                   ),
                   SizedBox(height: 30.h),
                   SizedBox(
                     width: double.infinity,
                     height: 50.h,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () => cubit.savePreferences(),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey.shade200,
-                        foregroundColor: Colors.grey,
-                        elevation: 0,
+                        backgroundColor: ColorsManager.primaryColor,
+                        foregroundColor: Colors.white,
+                        elevation: 2,
                       ),
                       child: Text('حفظ تفضيلاتي', style: TextStyle(fontSize: 16.sp)),
                     ),
                   ),
                   SizedBox(height: 20.h),
-                  const Center(
-                    child: Text(
-                      'تعديل تفضيلاتك بعد 3 ايام',
-                      style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                    ),
-                  )
                 ],
               ),
             ),
@@ -106,15 +163,27 @@ class AchievementPlanScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSection({required String title, required String percentage, required List<Widget> children}) {
+  Widget _buildSection({
+    required BuildContext context,
+    required String title,
+    required Map<String, int?> items,
+    required Function(String) onToggle,
+    required Function(String, int) onAdjust,
+    bool Function(String)? isWide,
+  }) {
+    final totalPercentage = items.values.where((v) => v != null).fold(0, (sum, v) => sum + v!);
+    
     return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            IconButton(icon: Icon(Icons.info_outline, color: ColorsManager.secondaryColor, size: 24.sp), onPressed: (){}),
+            IconButton(
+              icon: Icon(Icons.info_outline, color: ColorsManager.secondaryColor, size: 24.sp),
+              onPressed: () {},
+            ),
             Text(title, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
-            Text(percentage, style: TextStyle(fontSize: 12.sp, color: Colors.grey)),
+            Text('$totalPercentage%', style: TextStyle(fontSize: 12.sp, color: Colors.grey)),
           ],
         ),
         SizedBox(height: 10.h),
@@ -122,19 +191,39 @@ class AchievementPlanScreen extends StatelessWidget {
           spacing: 10.w,
           runSpacing: 10.h,
           alignment: WrapAlignment.end,
-          children: children.reversed.toList(), // RTL layout visually
-        )
+          children: items.entries.map((entry) {
+            final isSelected = entry.value != null;
+            final wide = isWide?.call(entry.key) ?? false;
+            
+            return _buildPreferenceItem(
+              label: entry.key,
+              value: entry.value ?? 0,
+              isSelected: isSelected,
+              isWide: wide,
+              onToggle: () => onToggle(entry.key),
+              onIncrease: () => onAdjust(entry.key, 10),
+              onDecrease: () => onAdjust(entry.key, -10),
+            );
+          }).toList(),
+        ),
       ],
     );
   }
 
-  Widget _buildPreferenceItem(String label, String value, {bool isWide = false}) {
-    // This replicates the teal box with +/- buttons and checkbox
+  Widget _buildPreferenceItem({
+    required String label,
+    required int value,
+    required bool isSelected,
+    required bool isWide,
+    required VoidCallback onToggle,
+    required VoidCallback onIncrease,
+    required VoidCallback onDecrease,
+  }) {
     return Container(
-      width: isWide ? double.infinity : 100.w, // Approximate width
+      width: isWide ? double.infinity : 100.w,
       padding: EdgeInsets.all(8.w),
       decoration: BoxDecoration(
-        color: ColorsManager.primaryColor, // Use Theme
+        color: isSelected ? ColorsManager.primaryColor : Colors.grey.shade300,
         borderRadius: BorderRadius.circular(8.r),
       ),
       child: Column(
@@ -142,27 +231,61 @@ class AchievementPlanScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(Icons.check_circle_outline, color: Colors.white, size: 16.sp),
-              Text(label, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12.sp)),
-              SizedBox(width: 4.w), // Spacer
+              InkWell(
+                onTap: onToggle,
+                child: Icon(
+                  isSelected ? Icons.check_circle : Icons.check_circle_outline,
+                  color: isSelected ? Colors.white : Colors.grey,
+                  size: 16.sp,
+                ),
+              ),
+              Text(
+                label,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : Colors.grey.shade700,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12.sp,
+                ),
+              ),
+              SizedBox(width: 4.w),
             ],
           ),
           SizedBox(height: 8.h),
           Container(
             padding: EdgeInsets.symmetric(horizontal: 4.w),
             decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(4.r)
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(4.r),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(Icons.remove_circle_outline, size: 16.sp, color: ColorsManager.secondaryColor),
-                Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
-                Icon(Icons.add_circle_outline, size: 16.sp, color: ColorsManager.secondaryColor),
+                InkWell(
+                  onTap: isSelected ? onDecrease : null,
+                  child: Icon(
+                    Icons.remove_circle_outline,
+                    size: 16.sp,
+                    color: isSelected ? ColorsManager.secondaryColor : Colors.grey,
+                  ),
+                ),
+                Text(
+                  '$value%',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: isSelected ? Colors.black : Colors.grey,
+                  ),
+                ),
+                InkWell(
+                  onTap: isSelected ? onIncrease : null,
+                  child: Icon(
+                    Icons.add_circle_outline,
+                    size: 16.sp,
+                    color: isSelected ? ColorsManager.secondaryColor : Colors.grey,
+                  ),
+                ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );

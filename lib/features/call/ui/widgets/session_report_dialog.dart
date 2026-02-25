@@ -3,15 +3,19 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/theming/colors.dart';
 import '../../../../core/di/dependency_injection.dart';
 import '../../../../features/home/logic/cubit/home_cubit.dart';
+import '../../../../features/record/logic/cubit/record_cubit.dart';
+import '../../../../features/record/data/models/session_model.dart';
 
 class SessionReportDialog extends StatefulWidget {
   final String studentName;
   final String trackName;
+  final VoidCallback? onSuccess;
 
   const SessionReportDialog({
     super.key,
     required this.studentName,
     required this.trackName,
+    this.onSuccess,
   });
 
   @override
@@ -236,18 +240,39 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
   }
   
   void _saveAndEnd() {
-    // Save to Logic/Backend
+    final now = DateTime.now();
+    
+    // Create Session Model
+    final session = SessionModel(
+      studentName: widget.studentName,
+      date: '${now.year}-${now.month}-${now.day}',
+      time: '${now.hour}:${now.minute.toString().padLeft(2, '0')}',
+      trackName: widget.trackName,
+      status: 'مكتملة', 
+      notes: notesController.text,
+      nextAssignment: nextAssignmentController.text,
+      rating: selectedRating,
+      isPresent: isPresent,
+    );
+    
+    // Save to RecordCubit
+    getIt<RecordCubit>().addSession(session);
+    
+    // Also update HomeCubit for recent calls (keep existing behavior for compatibility)
     final callData = {
       'name': widget.studentName,
-      'initial': widget.studentName.characters.first, // Simple initial
-      // In a real app, we'd save the full report details (rating, notes, etc.)
+      'initial': widget.studentName.isNotEmpty ? widget.studentName.characters.first : '',
     };
-    
     getIt<HomeCubit>().addCall(callData);
     
-    // Close Dialog AND Call Screen to go back to Home
-    Navigator.of(context).pop(); // Close Dialog
-    Navigator.of(context).pop(); // Close Call Screen
+    // Check if we have a success callback for specific cleanup (e.g. ending Agora session)
+    if (widget.onSuccess != null) {
+      widget.onSuccess!();
+    } else {
+      // Default: Close Dialog AND Call Screen to go back to Home
+      Navigator.of(context).pop(); // Close Dialog
+      Navigator.of(context).pop(); // Close Call Screen
+    }
   }
 
   Widget _buildSectionTitle(String title) {

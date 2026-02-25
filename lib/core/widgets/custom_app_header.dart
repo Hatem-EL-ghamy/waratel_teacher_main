@@ -78,7 +78,7 @@ class CustomAppHeader extends StatelessWidget implements PreferredSizeWidget {
           // Right: Notification Bell
           NotificationIconButton(
             onTap: () {
-              // Navigate to notifications screen if not already there
+              Navigator.pushNamed(context, '/notifications');
             },
             notificationCount: 5, // Example count due to mocked data
           ),

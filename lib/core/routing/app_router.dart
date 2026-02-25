@@ -7,6 +7,7 @@ import '../../features/achievement_plan/ui/achievement_plan_screen.dart';
 import '../../features/profile/ui/profile_screen.dart';
 import '../../features/schedule/ui/add_appointment_screen.dart';
 import '../../features/call/ui/call_screen.dart';
+import '../../features/notifications/ui/notifications_screen.dart';
 
 
 /// إدارة التوجيه في التطبيق
@@ -45,7 +46,22 @@ class AppRouter {
         );
 
       case Routes.call:
-        return MaterialPageRoute(builder: (_) => const CallScreen());
+        final dynamic rawArgs = settings.arguments;
+        final Map<String, dynamic> args = (rawArgs is Map<String, dynamic>) ? rawArgs : {};
+        return MaterialPageRoute(
+          builder: (_) => CallScreen(
+            token: args['token'] ?? '',
+            channelName: args['channelName'] ?? '',
+            uid: args['uid'] ?? 0,
+            studentName: args['studentName'] ?? 'طالب',
+          ),
+        );
+
+      case Routes.notifications:
+        return MaterialPageRoute(
+          builder: (_) => const NotificationsScreen(),
+        );
+
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(

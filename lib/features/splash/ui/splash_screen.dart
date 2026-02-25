@@ -1,14 +1,8 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../../core/theming/colors.dart';
-import 'widgets/splash_animated_logo.dart';
-import 'widgets/splash_animated_text.dart';
-import '../../../core/routing/routers.dart';
-import 'widgets/splash_loading_indicator.dart';
-import 'widgets/splash_decorative_circles.dart';
+import 'package:waratel_app/core/theming/colors.dart';
+import 'package:waratel_app/core/routing/routers.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-/// شاشة البداية مع أنيميشن احترافي
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -17,161 +11,125 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen>
-    with TickerProviderStateMixin {
-  late AnimationController _logoController;
-  late AnimationController _textController;
-  late AnimationController _shimmerController;
-
-  late Animation<double> _logoScaleAnimation;
-  late Animation<double> _logoFadeAnimation;
-  late Animation<double> _logoRotationAnimation;
-
-  late Animation<double> _textFadeAnimation;
-  late Animation<Offset> _textSlideAnimation;
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
-    _initializeAnimations();
-    _startAnimationSequence();
-  }
-
-  void _initializeAnimations() {
-    // Logo Animation Controller
-    _logoController = AnimationController(
+    _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     );
 
-    // Text Animation Controller
-    _textController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1000),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.8,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
-    // Shimmer Animation Controller
-    _shimmerController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2000),
-    )..repeat(reverse: true);
-
-    // Logo Animations
-    _logoScaleAnimation = Tween<double>(
+    _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _logoController,
-      curve: Curves.elasticOut,
-    ));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
 
-    _logoFadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _logoController,
-      curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
-    ));
+    _controller.forward();
 
-    _logoRotationAnimation = Tween<double>(
-      begin: -0.1,
-      end: 0.0,
-    ).animate(CurvedAnimation(
-      parent: _logoController,
-      curve: Curves.easeOutBack,
-    ));
-
-    // Text Animations
-    _textFadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _textController,
-      curve: Curves.easeIn,
-    ));
-
-    _textSlideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.5),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _textController,
-      curve: Curves.easeOutCubic,
-    ));
-  }
-
-  Future<void> _startAnimationSequence() async {
-    // Start logo animation
-    await _logoController.forward();
-
-    // Start text animation after a short delay
-    await Future.delayed(const Duration(milliseconds: 300));
-    await _textController.forward();
-
-    // Wait before navigating (3 seconds)
-    await Future.delayed(const Duration(seconds: 3));
-
-    // Navigate to login screen
-    if (mounted) {
-      Navigator.of(context).pushReplacementNamed(Routes.login);
-    }
+    // Navigate to Onboarding after a delay
+    Future.delayed(const Duration(seconds: 4), () {
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, Routes.login);
+      }
+    });
   }
 
   @override
   void dispose() {
-    _logoController.dispose();
-    _textController.dispose();
-    _shimmerController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        color: AppColors.backgroundColor,
-        child: Stack(
-          children: [
-            // Decorative circles
-            const SplashDecorativeCircles(),
-
-            // Main content
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Logo with animations
-                  Padding(
-                    padding: EdgeInsets.only(bottom: 20.h),
-                    child: SplashAnimatedLogo(
-                      scaleAnimation: _logoScaleAnimation,
-                      fadeAnimation: _logoFadeAnimation,
-                      rotationAnimation: _logoRotationAnimation,
-                    ),
-                  ),
-
-                  SizedBox(height: 40.h),
-
-                  // App name with animations
-                  SplashAnimatedText(
-                    fadeAnimation: _textFadeAnimation,
-                    slideAnimation: _textSlideAnimation,
-                  ),
-
-                  SizedBox(height: 40.h),
-
-                  // Loading indicator
-                  SplashLoadingIndicator(
-                    fadeAnimation: _textFadeAnimation,
-                  ),
-
-                  // Spacer to push content up
-                  SizedBox(height: 50.h),
-                ],
+      backgroundColor: Colors.white,
+      body: Stack(
+        children: [
+          // Background Gradient decoration
+          Positioned(
+            top: -100,
+            right: -100,
+            child: Container(
+              width: 300.w,
+              height: 300.w,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primaryColor,
               ),
             ),
-          ],
-        ),
+          ),
+          Positioned(
+            bottom: -50,
+            left: -50,
+            child: Container(
+              width: 200.w,
+              height: 200.w,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primaryColor,
+              ),
+            ),
+          ),
+          Center(
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: ScaleTransition(
+                scale: _scaleAnimation,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 140.w,
+                      height: 140.w,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor,
+                        borderRadius: BorderRadius.circular(30.r),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(30.r),
+                        child: Image.asset(
+                          'assets/icons/ورتل ايقون (1).png',
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 24.h),
+                    const Text(
+                      "ورتل",
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.primaryColor,
+                        fontFamily: 'Cairo',
+                        letterSpacing: 2,
+                      ),
+                    ),
+                    Text(
+                      "ورتل القرآن ترتيلاً",
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: Colors.grey[400],
+                        fontFamily: 'Cairo',
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

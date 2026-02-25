@@ -28,25 +28,27 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  agora_rtc_engine: ^6.5.3
+  permission_handler: ^11.3.1
+  cupertino_icons: ^1.0.8
+  dio: ^5.9.1
   flutter:
     sdk: flutter
+  flutter_bloc: ^9.1.0
   flutter_localizations:
     sdk: flutter
-
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
   flutter_screenutil: ^5.9.3
-  get_it: ^8.0.2
+  get_it: ^9.2.0
+  google_fonts: 6.3.0
+  intl: any
+  json_annotation: ^4.9.0
+  pretty_dio_logger: ^1.4.0
+  retrofit: ^4.4.1
   shared_preferences: ^2.3.5
-  flutter_bloc: ^9.1.0
-  dio: ^5.7.0
-  google_fonts: ^6.2.1
-  camera: ^0.10.5+5
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
+  build_runner: ^2.4.13
+  flutter_launcher_icons: ^0.13.1
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -54,13 +56,13 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
-  
-  # مكتبة تغيير أيقونة التطبيق
-  flutter_launcher_icons: ^0.13.1
+  flutter_test:
+    sdk: flutter
+  json_serializable: ^6.8.0
+  retrofit_generator: ^8.1.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
-
 # The following section is specific to Flutter packages.
 flutter:
 
@@ -74,27 +76,32 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/sounds/
-
-  # إضافة الخطوط المخصصة
-  # ملاحظة: قم بإلغاء التعليق بعد إضافة ملفات خط Cairo في assets/fonts/
-  # fonts:
-  #   - family: Cairo
-  #     fonts:
-  #       - asset: assets/fonts/Cairo-Regular.ttf
-  #       - asset: assets/fonts/Cairo-Bold.ttf
-  #         weight: 700
-  #       - asset: assets/fonts/Cairo-SemiBold.ttf
-  #         weight: 600
-  #       - asset: assets/fonts/Cairo-Medium.ttf
-  #         weight: 500
-  #       - asset: assets/fonts/Cairo-Light.ttf
-  #         weight: 300
-
+    - assets/fonte/
+  # خطوط Cairo المحلية
+  fonts:
+    - family: Cairo
+      fonts:
+        - asset: assets/fonte/Cairo-Regular.ttf
+          weight: 400
+        - asset: assets/fonte/Cairo-Medium.ttf
+          weight: 500
+        - asset: assets/fonte/Cairo-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonte/Cairo-Bold.ttf
+          weight: 700
+        - asset: assets/fonte/Cairo-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonte/Cairo-Black.ttf
+          weight: 900
+        - asset: assets/fonte/Cairo-Light.ttf
+          weight: 300
+        - asset: assets/fonte/Cairo-ExtraLight.ttf
+          weight: 200
 # إعدادات أيقونة التطبيق
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/app_icon.png"
+  image_path: "assets/icons/ورتل-png-الوان-2 (1).png"
   # يمكنك أيضاً تحديد أيقونات مختلفة لكل منصة
   # android: "assets/images/android_icon.png"
   # ios: "assets/images/ios_icon.png"

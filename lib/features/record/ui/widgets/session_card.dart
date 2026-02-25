@@ -7,6 +7,7 @@ class SessionCard extends StatelessWidget {
   final String time;
   final String date;
   final String status;
+  final VoidCallback? onReportTap;
   final String reportCenter;
   final Color statusColor;
 
@@ -18,11 +19,13 @@ class SessionCard extends StatelessWidget {
     required this.status,
     required this.reportCenter,
     this.statusColor = Colors.blue,
+    this.onReportTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      // ... existing container properties ...
       margin: EdgeInsets.only(bottom: 16.h),
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -123,9 +126,9 @@ class SessionCard extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () {},
-              icon: Icon(Icons.play_circle_filled, size: 18.sp),
-              label: Text('مشاهدة التسجيل', style: TextStyle(fontSize: 14.sp)),
+              onPressed: onReportTap,
+              icon: Icon(Icons.visibility, size: 18.sp),
+              label: Text('عرض التفاصيل', style: TextStyle(fontSize: 14.sp)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: ColorsManager.primaryColor,
                 foregroundColor: Colors.white,
