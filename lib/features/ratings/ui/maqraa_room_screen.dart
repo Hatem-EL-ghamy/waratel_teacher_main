@@ -1,21 +1,23 @@
 import 'dart:async';
-import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:flutter/material.dart';
-import '../../../../core/theming/colors.dart'; 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:waratel_app/core/theming/colors.dart';
+import 'package:agora_rtc_engine/agora_rtc_engine.dart';
+import 'package:waratel_app/core/agora/agora_service.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../logic/cubit/ratings_state.dart';
-import '../logic/cubit/ratings_cubit.dart';
-import '../data/models/session_model.dart';
-import '../../../../core/agora/agora_service.dart';
-import '../../../../core/di/dependency_injection.dart';
-import 'widgets/maqraa_attendance_dialog.dart';
+import 'package:waratel_app/core/di/dependency_injection.dart';
+import 'package:waratel_app/features/ratings/logic/cubit/ratings_state.dart';
+import 'package:waratel_app/features/ratings/logic/cubit/ratings_cubit.dart';
+import 'package:waratel_app/features/ratings/data/models/session_model.dart';
+import 'package:waratel_app/features/localization/data/app_localizations.dart';
+import 'package:waratel_app/features/ratings/ui/widgets/maqraa_attendance_dialog.dart';
 
 class MaqraaRoomScreen extends StatefulWidget {
   final SessionItem session;
   final StartSessionData agoraData;
 
-  const MaqraaRoomScreen({super.key, required this.session, required this.agoraData});
+  const MaqraaRoomScreen(
+      {super.key, required this.session, required this.agoraData});
 
   @override
   State<MaqraaRoomScreen> createState() => _MaqraaRoomScreenState();
@@ -26,7 +28,8 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
   Duration _timeLeft = Duration.zero;
   bool _isMuted = false;
   bool _isCameraOff = false;
-  
+  bool _isSpeakerOn = true;
+
   final List<int> _remoteUsers = [];
   final AgoraService _agoraService = getIt<AgoraService>();
 
@@ -39,19 +42,23 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _calculateTimeLeft();
     });
-    
+
     // Set initial camera state - simple check for video based on title
     if (!widget.session.title.contains('فيديو')) {
       _isCameraOff = true;
     }
 
     _setupAgoraHandlers();
-    
+
     // Initial attendance load
     context.read<RatingsCubit>().loadAttendance(widget.session.id);
   }
 
   void _setupAgoraHandlers() {
+    if (_agoraService.isInitialized) {
+      // Already initialized, set speaker immediately
+      _setSpeakerSafe(true);
+    }
     _agoraService.onUserJoined = (uid) {
       if (!mounted) return;
       setState(() {
@@ -67,6 +74,14 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
         _remoteUsers.remove(uid);
       });
     };
+  }
+
+  void _setSpeakerSafe(bool enable) {
+    try {
+      _agoraService.setEnableSpeakerphone(enable);
+    } catch (e) {
+      // ignore if engine not ready
+    }
   }
 
   void _calculateTimeLeft() {
@@ -104,7 +119,8 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
       listener: (context, state) {
         if (state is RatingsSessionEnded) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message), backgroundColor: Colors.green),
+            SnackBar(
+                content: Text(state.message), backgroundColor: Colors.green),
           );
           Navigator.pop(context);
         } else if (state is RatingsAttendanceLoaded) {
@@ -115,13 +131,14 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
       },
       child: Scaffold(
         backgroundColor: const Color(0xFF1E1E1E),
-        endDrawer: _buildAttendanceDrawer(),
+        endDrawer: _buildAttendanceDrawer(context),
         body: Stack(
           children: [
             // Full-screen attendees grid
             Positioned.fill(
               child: GridView.builder(
-                padding: EdgeInsets.only(top: 100.h, left: 10.w, right: 10.w, bottom: 100.h),
+                padding: EdgeInsets.only(
+                    top: 100.h, left: 10.w, right: 10.w, bottom: 100.h),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
                   childAspectRatio: 0.8,
@@ -132,29 +149,30 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
                 itemBuilder: (context, index) {
                   if (index == 0) {
                     // Local Teacher
-                    return _buildLocalUserTile();
+                    return _buildLocalUserTile(context);
                   }
                   // Remote Students
                   final remoteUid = _remoteUsers[index - 1];
-                  return _buildRemoteUserTile(remoteUid);
+                  return _buildRemoteUserTile(context, remoteUid);
                 },
               ),
             ),
-            
+
             // Top overlay - Session info
             Positioned(
               top: 0,
               left: 0,
               right: 0,
               child: Container(
-                padding: EdgeInsets.only(top: 40.h, bottom: 16.h, left: 16.w, right: 16.w),
+                padding: EdgeInsets.only(
+                    top: 40.h, bottom: 16.h, left: 16.w, right: 16.w),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.black.withOpacity(0.7),
-                      Colors.black.withOpacity(0.3),
+                      Colors.black.withValues(alpha: 0.7),
+                      Colors.black.withValues(alpha: 0.3),
                       Colors.transparent,
                     ],
                   ),
@@ -163,10 +181,8 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white), 
-                      onPressed: () => Navigator.pop(context)
-                    ),
-                    
+                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: () => Navigator.pop(context)),
                     Expanded(
                       child: Column(
                         children: [
@@ -180,18 +196,44 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
                             textAlign: TextAlign.center,
                           ),
                           SizedBox(height: 4.h),
-                          Text(
-                            _formatDuration(_timeLeft),
-                            style: TextStyle(
-                              fontSize: 14.sp,
-                              color: _timeLeft.inMinutes < 5 ? Colors.red : Colors.white70,
-                              fontWeight: FontWeight.w600,
-                            ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (widget.agoraData.isRecording) ...[
+                                Container(
+                                  width: 8.w,
+                                  height: 8.w,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                SizedBox(width: 4.w),
+                                Text(
+                                  'REC',
+                                  style: TextStyle(
+                                    fontSize: 10.sp,
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(width: 8.w),
+                              ],
+                              Text(
+                                _formatDuration(_timeLeft),
+                                style: TextStyle(
+                                  fontSize: 14.sp,
+                                  color: _timeLeft.inMinutes < 5
+                                      ? Colors.red
+                                      : Colors.white70,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
                     ),
-                    
                     Builder(
                       builder: (context) => IconButton(
                         icon: const Icon(Icons.people, color: Colors.white),
@@ -202,17 +244,17 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
                 ),
               ),
             ),
-            
+
             // Bottom overlay - Controls
             Positioned(
               bottom: 30.h,
               left: 0,
               right: 0,
               child: Container(
-                padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 20.w),
-                margin: EdgeInsets.symmetric(horizontal: 30.w),
+                padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 10.w),
+                margin: EdgeInsets.symmetric(horizontal: 20.w),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.7),
+                  color: Colors.black.withValues(alpha: 0.7),
                   borderRadius: BorderRadius.circular(30.r),
                 ),
                 child: Row(
@@ -221,29 +263,38 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
                     _buildControlBtn(
                       icon: _isMuted ? Icons.mic_off : Icons.mic,
                       color: Colors.white,
-                      bgColor: _isMuted ? Colors.red : Colors.white.withOpacity(0.2),
+                      bgColor:
+                          _isMuted ? Colors.red : Colors.white.withValues(alpha: 0.2),
                       onTap: () {
                         setState(() => _isMuted = !_isMuted);
                         context.read<RatingsCubit>().toggleMic(_isMuted);
                       },
                     ),
                     _buildControlBtn(
-                      icon: _isCameraOff ? Icons.videocam_off : Icons.videocam,
+                      icon: _isSpeakerOn ? Icons.volume_up : Icons.volume_off,
                       color: Colors.white,
-                      bgColor: _isCameraOff ? Colors.red : Colors.white.withOpacity(0.2),
+                      bgColor:
+                          _isSpeakerOn ? Colors.green : Colors.white.withValues(alpha: 0.2),
                       onTap: () {
-                        setState(() => _isCameraOff = !_isCameraOff);
-                        context.read<RatingsCubit>().toggleCamera(_isCameraOff);
+                        setState(() => _isSpeakerOn = !_isSpeakerOn);
+                        _setSpeakerSafe(_isSpeakerOn);
                       },
                     ),
-                    
                     _buildControlBtn(
                       icon: Icons.call_end,
                       color: Colors.white,
                       bgColor: Colors.red,
-                      size: 32.sp,
+                      size: 28.sp,
                       onTap: () {
-                         _showEndSessionDialog(context);
+                        _showEndSessionDialog(context);
+                      },
+                    ),
+                    _buildControlBtn(
+                      icon: Icons.exit_to_app,
+                      color: Colors.white,
+                      bgColor: Colors.grey.withValues(alpha: 0.5),
+                      onTap: () {
+                        _showExitConfirmation(context);
                       },
                     ),
                   ],
@@ -256,14 +307,15 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
     );
   }
 
-  Widget _buildAttendanceDrawer() {
+  Widget _buildAttendanceDrawer(BuildContext context) {
     return Drawer(
       width: 250.w,
       backgroundColor: Colors.white,
       child: Column(
         children: [
           Container(
-            padding: EdgeInsets.only(top: 50.h, bottom: 20.h, left: 16.w, right: 16.w),
+            padding: EdgeInsets.only(
+                top: 50.h, bottom: 20.h, left: 16.w, right: 16.w),
             color: ColorsManager.primaryColor,
             width: double.infinity,
             child: Column(
@@ -273,7 +325,9 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.refresh, color: Colors.white),
-                      onPressed: () => context.read<RatingsCubit>().loadAttendance(widget.session.id),
+                      onPressed: () => context
+                          .read<RatingsCubit>()
+                          .loadAttendance(widget.session.id),
                     ),
                     const Icon(Icons.people, color: Colors.white, size: 40),
                     SizedBox(width: 48.w), // Spacer for balance
@@ -281,8 +335,11 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
                 ),
                 SizedBox(height: 10.h),
                 Text(
-                  'قائمة الحضور',
-                  style: TextStyle(color: Colors.white, fontSize: 18.sp, fontWeight: FontWeight.bold),
+                  'attendance_list'.tr(context),
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -290,7 +347,10 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
           if (_attendanceData == null)
             const Expanded(child: Center(child: CircularProgressIndicator()))
           else if (_attendanceData!.data.isEmpty && _remoteUsers.isEmpty)
-             Expanded(child: Center(child: Text('لا يوجد حضور حالياً', style: TextStyle(color: Colors.grey, fontSize: 14.sp))))
+            Expanded(
+                child: Center(
+                    child: Text('no_attendance_now'.tr(context),
+                        style: TextStyle(color: Colors.grey, fontSize: 14.sp))))
           else
             Expanded(
               child: ListView(
@@ -298,29 +358,47 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
                 children: [
                   ..._attendanceData!.data.map((student) {
                     bool isOnline = _remoteUsers.contains(student.id);
+                    String name = student.name ?? '${'student_label'.tr(context)} ${student.id}';
                     return ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: isOnline ? Colors.green.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
-                        child: Text(student.name.characters.first, 
-                          style: TextStyle(color: isOnline ? Colors.green : Colors.grey)),
+                        backgroundColor: isOnline
+                            ? Colors.green.withValues(alpha: 0.1)
+                            : Colors.grey.withValues(alpha: 0.1),
+                        child: Text(name.isNotEmpty ? name.characters.first : '؟',
+                            style: TextStyle(
+                                color: isOnline ? Colors.green : Colors.grey)),
                       ),
-                      title: Text(student.name, style: TextStyle(fontSize: 14.sp, fontWeight: isOnline ? FontWeight.bold : FontWeight.normal)),
+                      title: Text(name,
+                          style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: isOnline
+                                  ? FontWeight.bold
+                                  : FontWeight.normal)),
                       trailing: Icon(
-                        isOnline ? Icons.check_circle : Icons.radio_button_unchecked, 
-                        color: isOnline ? Colors.green : Colors.grey, 
-                        size: 20.sp
-                      ),
+                          isOnline
+                              ? Icons.check_circle
+                              : Icons.radio_button_unchecked,
+                          color: isOnline ? Colors.green : Colors.grey,
+                          size: 20.sp),
                     );
                   }),
                   // Show Agora users who are not in the registered list
-                  ..._remoteUsers.where((uid) => !_attendanceData!.data.any((s) => s.id == uid)).map((uid) {
-                     return ListTile(
+                  ..._remoteUsers
+                      .where((uid) =>
+                          !_attendanceData!.data.any((s) => s.id == uid))
+                      .map((uid) {
+                    return ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: Colors.green.withOpacity(0.1),
-                        child: Text('؟', style: TextStyle(color: Colors.green)),
+                        backgroundColor: Colors.green.withValues(alpha: 0.1),
+                        child: const Text('؟',
+                            style: TextStyle(color: Colors.green)),
                       ),
-                      title: Text('طالب $uid (غير مسجل)', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold)),
-                      trailing: Icon(Icons.check_circle, color: Colors.green, size: 20.sp),
+                      title: Text(
+                          '${'student_label'.tr(context)} $uid (${'unregistered'.tr(context)})',
+                          style: TextStyle(
+                              fontSize: 14.sp, fontWeight: FontWeight.bold)),
+                      trailing: Icon(Icons.check_circle,
+                          color: Colors.green, size: 20.sp),
                     );
                   }),
                 ],
@@ -329,7 +407,7 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
           Padding(
             padding: EdgeInsets.all(16.w),
             child: Text(
-              'إجمالي المسجلين: ${_attendanceData?.summary.totalStudents ?? 0}',
+              '${'total_registered'.tr(context)} ${_attendanceData?.summary.totalStudents ?? 0}',
               style: TextStyle(color: Colors.grey, fontSize: 12.sp),
             ),
           ),
@@ -337,16 +415,45 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
       ),
     );
   }
+
+  void _showExitConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('exit_room'.tr(context)),
+        content: Text('exit_room_confirm'.tr(context)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text('cancel'.tr(context)),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              await _agoraService.leaveChannel();
+              if (context.mounted) Navigator.pop(context);
+            },
+            child: Text('exit'.tr(context),
+                style: const TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showEndSessionDialog(BuildContext context) {
-    // If we have API data, use it. 
+    // If we have API data, use it.
     // If not, use the current online Agora users to build a list.
     List<AttendanceStudent> studentsToTakeAttendance = [];
-    
+
     if (_attendanceData != null && _attendanceData!.data.isNotEmpty) {
       studentsToTakeAttendance = _attendanceData!.data;
     } else {
       // Create temporary list from current online users
-      studentsToTakeAttendance = _remoteUsers.map((uid) => AttendanceStudent(id: uid, name: 'طالب $uid')).toList();
+      studentsToTakeAttendance = _remoteUsers
+          .map((uid) => AttendanceStudent(
+              id: uid, name: '${'student_label'.tr(context)} $uid'))
+          .toList();
     }
 
     if (studentsToTakeAttendance.isEmpty) {
@@ -363,9 +470,9 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
         onSave: (attendance, notes) {
           Navigator.pop(dialogContext);
           context.read<RatingsCubit>().endMaqraaWithReport(
-            attendance: attendance,
-            notes: notes,
-          );
+                attendance: attendance,
+                notes: notes,
+              );
         },
       ),
     );
@@ -376,19 +483,20 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('إنهاء المقرأة'),
-        content: const Text('لا يوجد طلاب مسجلين أو حاضرين حالياً. هل تريد إنهاء الجلسة فقط؟'),
+        title: Text('end_maqraa'.tr(context)),
+        content: Text('end_session_only_confirm'.tr(context)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('إلغاء'),
+            child: Text('cancel'.tr(context)),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(dialogContext);
-              ratingsCubit.endMaqraa(); 
+              ratingsCubit.endMaqraa();
             },
-            child: const Text('إنهاء الجلسة', style: TextStyle(color: Colors.red)),
+            child: Text('end_session'.tr(context),
+                style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -406,7 +514,7 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
     );
   }
 
-  Widget _buildLocalUserTile() {
+  Widget _buildLocalUserTile(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.grey[800],
@@ -417,25 +525,27 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(15.r),
-            child: !_isCameraOff 
-              ? AgoraVideoView(
-                  controller: VideoViewController(
-                    rtcEngine: _agoraService.engine,
-                    canvas: const VideoCanvas(uid: 0),
+            child: !_isCameraOff
+                ? AgoraVideoView(
+                    controller: VideoViewController(
+                      rtcEngine: _agoraService.engine,
+                      canvas: const VideoCanvas(uid: 0),
+                    ),
+                  )
+                : Center(
+                    child: CircleAvatar(
+                      radius: 30.r,
+                      backgroundColor: Colors.blue,
+                      child: Text('you'.tr(context),
+                          style:
+                              TextStyle(color: Colors.white, fontSize: 18.sp)),
+                    ),
                   ),
-                )
-              : Center(
-                  child: CircleAvatar(
-                    radius: 30.r,
-                    backgroundColor: Colors.blue,
-                    child: Text('أنت', style: TextStyle(color: Colors.white, fontSize: 18.sp)),
-                  ),
-                ),
           ),
           Positioned(
             bottom: 10.h,
             left: 10.w,
-            child: _badge('أنت (المعلم)'),
+            child: _badge('you_teacher'.tr(context)),
           ),
           if (_isMuted)
             Positioned(
@@ -448,13 +558,13 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
     );
   }
 
-  Widget _buildRemoteUserTile(int uid) {
+  Widget _buildRemoteUserTile(BuildContext context, int uid) {
     // Attempt to match the UID with a real name from attendance if possible
-    String studentName = 'طالب $uid';
+    String studentName = '${'student_label'.tr(context)} $uid';
     if (_attendanceData != null) {
       try {
         final student = _attendanceData!.data.firstWhere((s) => s.id == uid);
-        studentName = student.name;
+        studentName = student.name ?? studentName;
       } catch (_) {
         // Fallback to generic name if no match found
       }
@@ -473,7 +583,8 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
               controller: VideoViewController.remote(
                 rtcEngine: _agoraService.engine,
                 canvas: VideoCanvas(uid: uid),
-                connection: RtcConnection(channelId: widget.agoraData.channelName),
+                connection:
+                    RtcConnection(channelId: widget.agoraData.channelName),
               ),
             ),
           ),
@@ -486,7 +597,6 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
       ),
     );
   }
-
 
   Widget _buildControlBtn({
     required IconData icon,

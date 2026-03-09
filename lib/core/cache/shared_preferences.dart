@@ -5,12 +5,18 @@ import 'constants.dart';
 class SharedPreferencesService {
   static SharedPreferences? _preferences;
 
-  /// تهيئة SharedPreferences
+  /// تهيئة SharedPreferences (استدعِها مرة في main)
   static Future<void> init() async {
     _preferences = await SharedPreferences.getInstance();
   }
 
-  /// الحصول على instance من SharedPreferences
+  /// الحصول على instance بشكل آمن — يُهيّئ تلقائياً إذا لم يكن مُهيّأ
+  static Future<SharedPreferences> _getInstance() async {
+    _preferences ??= await SharedPreferences.getInstance();
+    return _preferences!;
+  }
+
+  /// الحصول على instance المتزامن (يتطلب init() مسبقاً)
   static SharedPreferences get instance {
     if (_preferences == null) {
       throw Exception('SharedPreferences not initialized. Call init() first.');
@@ -22,54 +28,81 @@ class SharedPreferencesService {
 
   /// حفظ التوكن
   static Future<bool> saveToken(String token) async {
-    return await instance.setString(AppConstants.tokenKey, token);
+    final prefs = await _getInstance();
+    return prefs.setString(AppConstants.tokenKey, token);
   }
 
   /// حفظ بيانات المستخدم
   static Future<bool> saveUserData(String userData) async {
-    return await instance.setString(AppConstants.userDataKey, userData);
+    final prefs = await _getInstance();
+    return prefs.setString(AppConstants.userDataKey, userData);
+  }
+
+  /// حفظ معرف المعلم
+  static Future<bool> saveTeacherId(int teacherId) async {
+    final prefs = await _getInstance();
+    return prefs.setInt(AppConstants.teacherIdKey, teacherId);
   }
 
   /// حفظ حالة تسجيل الدخول
   static Future<bool> setLoggedIn(bool isLoggedIn) async {
-    return await instance.setBool(AppConstants.isLoggedInKey, isLoggedIn);
+    final prefs = await _getInstance();
+    return prefs.setBool(AppConstants.isLoggedInKey, isLoggedIn);
   }
 
   /// حفظ حالة عرض الـ Onboarding
   static Future<bool> setHasSeenOnboarding(bool hasSeen) async {
-    return await instance.setBool(AppConstants.hasSeenOnboardingKey, hasSeen);
+    final prefs = await _getInstance();
+    return prefs.setBool(AppConstants.hasSeenOnboardingKey, hasSeen);
+  }
+
+  /// حفظ حالة الموافقة على الشروط
+  static Future<bool> setHasAgreedToTerms(bool hasAgreed) async {
+    final prefs = await _getInstance();
+    return prefs.setBool(AppConstants.hasAgreedToTermsKey, hasAgreed);
   }
 
   /// حفظ اللغة
   static Future<bool> saveLanguage(String languageCode) async {
-    return await instance.setString(AppConstants.languageKey, languageCode);
+    final prefs = await _getInstance();
+    return prefs.setString(AppConstants.languageKey, languageCode);
   }
 
   // ========== استرجاع البيانات ==========
 
   /// الحصول على التوكن
   static String? getToken() {
-    return instance.getString(AppConstants.tokenKey);
+    return _preferences?.getString(AppConstants.tokenKey);
   }
 
   /// الحصول على بيانات المستخدم
   static String? getUserData() {
-    return instance.getString(AppConstants.userDataKey);
+    return _preferences?.getString(AppConstants.userDataKey);
   }
 
   /// التحقق من حالة تسجيل الدخول
   static bool isLoggedIn() {
-    return instance.getBool(AppConstants.isLoggedInKey) ?? false;
+    return _preferences?.getBool(AppConstants.isLoggedInKey) ?? false;
+  }
+
+  /// الحصول على معرف المعلم المحفوظ
+  static int? getTeacherId() {
+    return _preferences?.getInt(AppConstants.teacherIdKey);
   }
 
   /// التحقق من عرض الـ Onboarding
   static bool hasSeenOnboarding() {
-    return instance.getBool(AppConstants.hasSeenOnboardingKey) ?? false;
+    return _preferences?.getBool(AppConstants.hasSeenOnboardingKey) ?? false;
+  }
+
+  /// التحقق من الموافقة على الشروط
+  static bool hasAgreedToTerms() {
+    return _preferences?.getBool(AppConstants.hasAgreedToTermsKey) ?? false;
   }
 
   /// الحصول على اللغة المحفوظة
   static String getLanguage() {
-    return instance.getString(AppConstants.languageKey) ?? 
+    return _preferences?.getString(AppConstants.languageKey) ??
            AppConstants.defaultLanguage;
   }
 
@@ -77,23 +110,27 @@ class SharedPreferencesService {
 
   /// حذف التوكن
   static Future<bool> removeToken() async {
-    return await instance.remove(AppConstants.tokenKey);
+    final prefs = await _getInstance();
+    return prefs.remove(AppConstants.tokenKey);
   }
 
   /// حذف بيانات المستخدم
   static Future<bool> removeUserData() async {
-    return await instance.remove(AppConstants.userDataKey);
+    final prefs = await _getInstance();
+    return prefs.remove(AppConstants.userDataKey);
   }
 
   /// تسجيل الخروج (حذف جميع البيانات)
   static Future<bool> logout() async {
     await removeToken();
     await removeUserData();
-    return await setLoggedIn(false);
+    return setLoggedIn(false);
   }
 
   /// مسح جميع البيانات
   static Future<bool> clearAll() async {
-    return await instance.clear();
+    final prefs = await _getInstance();
+    return prefs.clear();
   }
 }
+

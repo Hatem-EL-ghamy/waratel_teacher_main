@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../core/theming/colors.dart';
-import '../../data/models/session_model.dart';
+import 'package:waratel_app/core/theming/colors.dart';
+import 'package:waratel_app/features/localization/data/app_localizations.dart';
+import 'package:waratel_app/features/ratings/data/models/session_model.dart';
 
 class MaqraaAttendanceDialog extends StatefulWidget {
   final List<AttendanceStudent> students;
@@ -49,7 +50,7 @@ class _MaqraaAttendanceDialogState extends State<MaqraaAttendanceDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'تحضير طلاب المقرأة',
+              'attendance_report'.tr(context),
               style: TextStyle(
                 fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
@@ -70,7 +71,7 @@ class _MaqraaAttendanceDialogState extends State<MaqraaAttendanceDialog> {
                   final student = widget.students[index];
                   bool isPresent = _attendance[student.id] ?? false;
                   return CheckboxListTile(
-                    title: Text(student.name, style: TextStyle(fontSize: 14.sp)),
+                    title: Text(student.name ?? '${'student_label'.tr(context)} ${student.id}', style: TextStyle(fontSize: 14.sp)),
                     value: isPresent,
                     activeColor: ColorsManager.primaryColor,
                     onChanged: (val) {
@@ -83,13 +84,13 @@ class _MaqraaAttendanceDialogState extends State<MaqraaAttendanceDialog> {
               ),
             ),
             const Divider(),
-            _buildSectionTitle('الملاحظات الختامية للمقرأة'),
+            _buildSectionTitle(context, 'notes_label'.tr(context)),
             SizedBox(height: 10.h),
             TextFormField(
               controller: _notesController,
               maxLines: 3,
               decoration: InputDecoration(
-                hintText: 'اكتب ملاحظات المقرأة هنا...',
+                hintText: 'no_notes'.tr(context),
                 hintStyle: TextStyle(fontSize: 12.sp, color: Colors.grey),
                 filled: true,
                 fillColor: Colors.grey.shade50,
@@ -105,7 +106,7 @@ class _MaqraaAttendanceDialogState extends State<MaqraaAttendanceDialog> {
                 Expanded(
                   child: TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('إلغاء'),
+                    child: Text('cancel'.tr(context)),
                   ),
                 ),
                 Expanded(
@@ -115,7 +116,7 @@ class _MaqraaAttendanceDialogState extends State<MaqraaAttendanceDialog> {
                       backgroundColor: ColorsManager.primaryColor,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
                     ),
-                    child: const Text('حفظ وإنهاء', style: TextStyle(color: Colors.white)),
+                    child: Text('save_and_end'.tr(context), style: TextStyle(color: Colors.white, fontSize: 13.sp)),
                   ),
                 ),
               ],
@@ -126,7 +127,7 @@ class _MaqraaAttendanceDialogState extends State<MaqraaAttendanceDialog> {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(BuildContext context, String title) {
     return Align(
       alignment: Alignment.centerRight,
       child: Text(

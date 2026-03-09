@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../data/models/models.dart';
+import 'package:waratel_app/features/login/data/models/models.dart';
 
 @immutable
 abstract class LoginState {}

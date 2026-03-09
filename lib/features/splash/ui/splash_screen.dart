@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:waratel_app/core/theming/colors.dart';
 import 'package:waratel_app/core/routing/routers.dart';
+import 'package:waratel_app/core/cache/shared_preferences.dart';
+import 'package:waratel_app/core/call/call_service.dart';
+import 'package:waratel_app/core/di/dependency_injection.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -36,12 +39,36 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // Navigate to Onboarding after a delay
-    Future.delayed(const Duration(seconds: 4), () {
+    // Navigate after splash animation
+    Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
-        Navigator.pushReplacementNamed(context, Routes.login);
+        _navigateNext();
       }
     });
+  }
+
+  /// التحقق من الجلسة المحفوظة والانتقال للشاشة المناسبة
+  void _navigateNext() {
+    final bool loggedIn = SharedPreferencesService.isLoggedIn();
+    final String? token = SharedPreferencesService.getToken();
+
+    if (loggedIn && token != null && token.isNotEmpty) {
+      // ✅ المعلم كان مسجلاً — أعد تفعيل Pusher ثم اذهب للرئيسية
+      final int? teacherId = SharedPreferencesService.getTeacherId();
+      if (teacherId != null) {
+        getIt<CallService>().initPusher(teacherId);
+        debugPrint('✅ [SPLASH] Auto-Login: تفعيل Pusher للمعلم $teacherId');
+      }
+      Navigator.pushReplacementNamed(context, Routes.home);
+    } else {
+      // ❌ لم يسجل دخول — تحقق من الموافقة على الشروط
+      final bool hasAgreed = SharedPreferencesService.hasAgreedToTerms();
+      if (hasAgreed) {
+        Navigator.pushReplacementNamed(context, Routes.login);
+      } else {
+        Navigator.pushReplacementNamed(context, Routes.termsAgreement);
+      }
+    }
   }
 
   @override
@@ -65,7 +92,7 @@ class _SplashScreenState extends State<SplashScreen>
               height: 300.w,
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primaryColor,
+                color: ColorsManager.primaryColor,
               ),
             ),
           ),
@@ -77,7 +104,7 @@ class _SplashScreenState extends State<SplashScreen>
               height: 200.w,
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primaryColor,
+                color: ColorsManager.primaryColor,
               ),
             ),
           ),
@@ -93,7 +120,7 @@ class _SplashScreenState extends State<SplashScreen>
                       width: 140.w,
                       height: 140.w,
                       decoration: BoxDecoration(
-                        color: AppColors.primaryColor,
+                        color: ColorsManager.primaryColor,
                         borderRadius: BorderRadius.circular(30.r),
                       ),
                       child: ClipRRect(
@@ -110,7 +137,7 @@ class _SplashScreenState extends State<SplashScreen>
                       style: TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.w900,
-                        color: AppColors.primaryColor,
+                        color: ColorsManager.primaryColor,
                         fontFamily: 'Cairo',
                         letterSpacing: 2,
                       ),

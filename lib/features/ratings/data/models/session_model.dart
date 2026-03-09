@@ -6,7 +6,7 @@ part 'session_model.g.dart';
 // Response: GET /teacher/sessions/my-sessions
 // ─────────────────────────────────────────────
 
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class SessionsResponse {
   final bool status;
   final String message;
@@ -22,18 +22,19 @@ class SessionsResponse {
       _$SessionsResponseFromJson(json);
 }
 
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class SessionsPaginatedData {
   @JsonKey(name: 'data')
   final List<SessionItem> sessions;
+  final int? total;
 
-  SessionsPaginatedData({required this.sessions});
+  SessionsPaginatedData({required this.sessions, this.total});
 
   factory SessionsPaginatedData.fromJson(Map<String, dynamic> json) =>
       _$SessionsPaginatedDataFromJson(json);
 }
 
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class SessionItem {
   final int id;
   final String title;
@@ -85,7 +86,7 @@ class SessionItem {
   bool get isEnded => status == 'ended';
 }
 
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class SessionTeacher {
   final int id;
 
@@ -100,7 +101,7 @@ class SessionTeacher {
       _$SessionTeacherFromJson(json);
 }
 
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class SessionUser {
   final int id;
   final String name;
@@ -122,7 +123,7 @@ class SessionUser {
 // Response: POST /teacher/sessions/{id}/start
 // ─────────────────────────────────────────────
 
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class StartSessionResponse {
   final bool status;
   final String message;
@@ -138,7 +139,7 @@ class StartSessionResponse {
       _$StartSessionResponseFromJson(json);
 }
 
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class StartSessionData {
   @JsonKey(name: 'agora_token')
   final String agoraToken;
@@ -152,12 +153,16 @@ class StartSessionData {
   final int uid;
   final String role;
 
+  @JsonKey(name: 'is_recording')
+  final bool isRecording;
+
   StartSessionData({
     required this.agoraToken,
     required this.channelName,
     required this.appId,
     required this.uid,
     required this.role,
+    required this.isRecording,
   });
 
   factory StartSessionData.fromJson(Map<String, dynamic> json) =>
@@ -168,7 +173,7 @@ class StartSessionData {
 // Response: POST /teacher/sessions/{id}/end
 // ─────────────────────────────────────────────
 
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class EndSessionResponse {
   final bool status;
   final String message;
@@ -180,12 +185,15 @@ class EndSessionResponse {
       _$EndSessionResponseFromJson(json);
 }
 
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class EndSessionSummary {
   @JsonKey(name: 'ended_at')
   final String? endedAt;
 
-  EndSessionSummary({this.endedAt});
+  @JsonKey(name: 'recording_url')
+  final String? recordingUrl;
+
+  EndSessionSummary({this.endedAt, this.recordingUrl});
 
   factory EndSessionSummary.fromJson(Map<String, dynamic> json) =>
       _$EndSessionSummaryFromJson(json);
@@ -195,13 +203,13 @@ class EndSessionSummary {
 // Response: GET /teacher/sessions/{id}/attendance
 // ─────────────────────────────────────────────
 
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class AttendanceResponse {
   final bool status;
   final String message;
 
   @JsonKey(name: 'session_title')
-  final String sessionTitle;
+  final String? sessionTitle;
 
   final AttendanceSummary summary;
 
@@ -210,7 +218,7 @@ class AttendanceResponse {
   AttendanceResponse({
     required this.status,
     required this.message,
-    required this.sessionTitle,
+    this.sessionTitle,
     required this.summary,
     required this.data,
   });
@@ -219,7 +227,7 @@ class AttendanceResponse {
       _$AttendanceResponseFromJson(json);
 }
 
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class AttendanceSummary {
   @JsonKey(name: 'total_students')
   final int totalStudents;
@@ -233,12 +241,12 @@ class AttendanceSummary {
       _$AttendanceSummaryFromJson(json);
 }
 
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class AttendanceStudent {
   final int id;
-  final String name;
+  final String? name;
 
-  AttendanceStudent({required this.id, required this.name});
+  AttendanceStudent({required this.id, this.name});
 
   factory AttendanceStudent.fromJson(Map<String, dynamic> json) =>
       _$AttendanceStudentFromJson(json);

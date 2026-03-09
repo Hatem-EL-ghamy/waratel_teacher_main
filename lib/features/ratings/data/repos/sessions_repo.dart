@@ -11,6 +11,10 @@ class SessionsRepo {
     return response.data.sessions;
   }
 
+  Future<SessionsResponse> getSessionsResponse() async {
+    return await _api.getMySessions();
+  }
+
   Future<StartSessionData> startSession(int sessionId) async {
     final response = await _api.startSession(sessionId);
     return response.data;

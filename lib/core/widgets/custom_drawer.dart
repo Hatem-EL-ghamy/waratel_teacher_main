@@ -1,193 +1,279 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../theming/colors.dart';
-import '../../features/profile/logic/cubit/profile_cubit.dart';
-import '../../features/profile/logic/cubit/profile_state.dart';
-import '../../features/profile/data/models/profile_models.dart';
+import 'package:waratel_app/core/routing/routers.dart';
+import 'package:waratel_app/core/theming/colors.dart';
+import 'package:waratel_app/features/profile/logic/cubit/profile_cubit.dart';
+import 'package:waratel_app/features/profile/logic/cubit/profile_state.dart';
+import 'package:waratel_app/features/profile/data/models/profile_models.dart';
+import 'package:waratel_app/features/localization/data/app_localizations.dart';
+import 'package:waratel_app/features/localization/logic/cubit/locale_cubit.dart';
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // نقرأ من ProfileCubit المُزوَّد في HomeLayout — لا نُنشئ instance جديدة
     return Drawer(
-      backgroundColor: ColorsManager.primaryColor,
-      child: SafeArea(
-        child: Column(
-          children: [
-            // ── Header — اسم المعلم وصورته من الـ API ──────────────────
-            BlocBuilder<ProfileCubit, ProfileState>(
-              builder: (context, state) {
-                ProfileUser? user;
-                String? photoPath;
-                String salary = '0.00';
-                if (state is ProfileLoaded) {
-                  user = state.profileResponse.user;
-                  photoPath = state.profileResponse.profile?.profilePhotoPath;
-                  salary = state.profileResponse.profile?.salary ?? '0.00';
-                }
-                return Container(
-                  padding: EdgeInsets.symmetric(
-                      vertical: 20.h, horizontal: 16.w),
-                  color: Colors.white,
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 30.r,
-                        backgroundColor: Colors.grey.shade200,
-                        backgroundImage: photoPath != null
-                            ? NetworkImage(
-                                'https://wartil.com/storage/$photoPath')
-                            : null,
-                        child: photoPath == null
-                            ? Icon(Icons.person,
-                                size: 38.sp, color: Colors.grey)
-                            : null,
-                      ),
-                      SizedBox(width: 12.w),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              user?.name ?? 'المعلم',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16.sp,
-                                color: ColorsManager.textPrimaryColor,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            Text(
-                              '$salary دولار امريكي',
-                              style: TextStyle(
-                                color: ColorsManager.secondaryColor,
-                                fontSize: 14.sp,
-                              ),
-                            ),
-                          ],
+      child: Container(
+        // Gradient drawer background for a premium look
+        decoration: const BoxDecoration(
+          gradient: ColorsManager.headerGradient,
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // ── Header ───────────────────────────────────────────────────
+              // PERF: buildWhen ensures header only rebuilds when profile
+              // data loads — not on logout / error / other unrelated states.
+              BlocBuilder<ProfileCubit, ProfileState>(
+                buildWhen: (_, curr) => curr is ProfileLoaded || curr is ProfileLoading,
+                builder: (context, state) {
+                  ProfileUser? user;
+                  String? photoPath;
+                  String salary = '0.00';
+                  if (state is ProfileLoaded) {
+                    user = state.profileResponse.user;
+                    photoPath = state.profileResponse.profile?.profilePhotoPath;
+                    salary = state.profileResponse.profile?.salary ?? '0.00';
+                  }
+                  return Container(
+                    padding: EdgeInsets.symmetric(
+                        vertical: 20.h, horizontal: 16.w),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.12),
+                      border: Border(
+                        bottom: BorderSide(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          width: 1,
                         ),
                       ),
-                    ],
-                  ),
-                );
-              },
-            ),
-
-            // ── Menu Items ──────────────────────────────────────────────
-            Expanded(
-              child: ListView(
-                padding: EdgeInsets.symmetric(vertical: 20.h),
-                children: [
-                  _buildDrawerItem(
-                    icon: Icons.person_outline,
-                    text: 'الملف الشخصي',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.pushNamed(context, '/profile');
-                    },
-                  ),
-                  _buildDrawerItem(
-                    icon: Icons.emoji_events,
-                    text: 'خطة الإنجاز',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.pushNamed(context, '/achievementPlan');
-                    },
-                  ),
-                  _buildDrawerItem(
-                    icon: Icons.help_outline,
-                    text: 'عن ورتل',
-                    onTap: () {},
-                  ),
-                  _buildDrawerItem(
-                    icon: Icons.headset_mic,
-                    text: 'تواصل معنا',
-                    onTap: () {},
-                  ),
-                  _buildDrawerItem(
-                    icon: Icons.description,
-                    text: 'الشروط و الاحكام',
-                    onTap: () {},
-                  ),
-                  _buildDrawerItem(
-                    icon: Icons.settings,
-                    text: 'تغيير اللغة',
-                    onTap: () {},
-                  ),
-                  _buildDrawerItem(
-                    icon: Icons.menu_book,
-                    text: 'القرآن الكريم',
-                    onTap: () {},
-                  ),
-                  _buildDrawerItem(
-                    icon: Icons.bar_chart,
-                    text: 'الإحصائيات',
-                    onTap: () {},
-                  ),
-
-                  // ── تسجيل الخروج ──────────────────────────────────────
-                  BlocBuilder<ProfileCubit, ProfileState>(
-                    builder: (context, state) {
-                      final isLoading = state is LogoutLoading;
-                      return ListTile(
-                        leading: isLoading
-                            ? SizedBox(
-                                width: 22.w,
-                                height: 22.w,
-                                child: const CircularProgressIndicator(
+                    ),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 30.r,
+                          backgroundColor:
+                              Colors.white.withValues(alpha: 0.25),
+                          backgroundImage: photoPath != null
+                              ? NetworkImage(
+                                  'https://wartil.com/storage/$photoPath')
+                              : null,
+                          child: photoPath == null
+                              ? Icon(Icons.person,
+                                  size: 38.sp, color: Colors.white)
+                              : null,
+                        ),
+                        SizedBox(width: 12.w),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user?.name ?? 'teacher'.tr(context),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16.sp,
                                   color: Colors.white,
-                                  strokeWidth: 2,
                                 ),
-                              )
-                            : Icon(Icons.logout,
-                                color: Colors.white, size: 28.sp),
-                        title: Text(
-                          'تسجيل الخروج',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w500,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                '$salary ${'usd'.tr(context)}',
+                                style: TextStyle(
+                                  color:
+                                      Colors.white.withValues(alpha: 0.75),
+                                  fontSize: 14.sp,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        onTap: isLoading
-                            ? null
-                            : () =>
-                                context.read<ProfileCubit>().logout(),
-                        contentPadding: EdgeInsets.symmetric(
-                            horizontal: 24.w, vertical: 4.h),
-                      );
-                    },
-                  ),
-                ],
+                      ],
+                    ),
+                  );
+                },
               ),
-            ),
-          ],
+
+              // ── Menu Items ───────────────────────────────────────────────
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.symmetric(vertical: 12.h),
+                  children: [
+                    _DrawerMenuItem(
+                      icon: Icons.person_outline,
+                      label: 'profile'.tr(context),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.pushNamed(context, '/profile');
+                      },
+                    ),
+                    _DrawerMenuItem(
+                      icon: Icons.emoji_events,
+                      label: 'achievement_plan'.tr(context),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.pushNamed(context, '/achievementPlan');
+                      },
+                    ),
+                    _DrawerMenuItem(
+                      icon: Icons.info_outline,
+                      label: 'about'.tr(context),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.pushNamed(context, Routes.about);
+                      },
+                    ),
+                    _DrawerMenuItem(
+                      icon: Icons.headset_mic_outlined,
+                      label: 'contact_us'.tr(context),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.pushNamed(context, Routes.contactUs);
+                      },
+                    ),
+                    _DrawerMenuItem(
+                      icon: Icons.description_outlined,
+                      label: 'terms'.tr(context),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.pushNamed(context, Routes.terms);
+                      },
+                    ),
+                    _DrawerMenuItem(
+                      icon: Icons.language,
+                      label: 'change_language'.tr(context),
+                      onTap: () => _showLanguageDialog(context),
+                    ),
+                    _DrawerMenuItem(
+                      icon: Icons.menu_book,
+                      label: 'quran'.tr(context),
+                      onTap: () {},
+                    ),
+                    _DrawerMenuItem(
+                      icon: Icons.bar_chart,
+                      label: 'stats'.tr(context),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.pushNamed(context, Routes.statistics);
+                      },
+                    ),
+
+                    Divider(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      height: 24.h,
+                      indent: 16.w,
+                      endIndent: 16.w,
+                    ),
+
+                    // ── Logout ──────────────────────────────────────────
+                    BlocBuilder<ProfileCubit, ProfileState>(
+                      buildWhen: (_, curr) =>
+                          curr is LogoutLoading || curr is LogoutSuccess || curr is LogoutError,
+                      builder: (context, state) {
+                        final isLoading = state is LogoutLoading;
+                        return ListTile(
+                          leading: isLoading
+                              ? SizedBox(
+                                  width: 22.w,
+                                  height: 22.w,
+                                  child: const CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Icon(Icons.logout,
+                                  color: Colors.white70, size: 26.sp),
+                          title: Text(
+                            'logout'.tr(context),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          onTap: isLoading
+                              ? null
+                              : () => context.read<ProfileCubit>().logout(),
+                          contentPadding: EdgeInsets.symmetric(
+                              horizontal: 24.w, vertical: 4.h),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildDrawerItem({
-    required IconData icon,
-    required String text,
-    required VoidCallback onTap,
-  }) {
+  void _showLanguageDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text('select_language'.tr(context)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16.r)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: Text('arabic'.tr(context)),
+                onTap: () {
+                  context.read<LocaleCubit>().changeLanguage('ar');
+                  Navigator.pop(dialogContext);
+                },
+              ),
+              ListTile(
+                title: Text('english'.tr(context)),
+                onTap: () {
+                  context.read<LocaleCubit>().changeLanguage('en');
+                  Navigator.pop(dialogContext);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Extracted as a proper widget — the build method is minimal and
+/// Flutter's element tree can diff it efficiently in the ListView.
+class _DrawerMenuItem extends StatelessWidget {
+  const _DrawerMenuItem({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(icon, color: Colors.white, size: 28.sp),
+      leading: Icon(icon, color: Colors.white, size: 26.sp),
       title: Text(
-        text,
+        label,
         style: TextStyle(
           color: Colors.white,
-          fontSize: 16.sp,
+          fontSize: 15.sp,
           fontWeight: FontWeight.w500,
         ),
       ),
       onTap: onTap,
       contentPadding:
-          EdgeInsets.symmetric(horizontal: 24.w, vertical: 4.h),
+          EdgeInsets.symmetric(horizontal: 24.w, vertical: 2.h),
+      splashColor: Colors.white12,
+      hoverColor: Colors.white10,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     );
   }
 }

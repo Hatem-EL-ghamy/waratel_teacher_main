@@ -32,7 +32,7 @@ class AdDetailDialog extends StatelessWidget {
               gradient: LinearGradient(
                 colors: [
                   ColorsManager.primaryColor,
-                  ColorsManager.primaryColor.withOpacity(0.8),
+                  ColorsManager.primaryColor.withValues(alpha: 0.8),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -69,7 +69,7 @@ class AdDetailDialog extends StatelessWidget {
             child: Column(
               children: [
                 Text(
-                  ad.description,
+                  ad.subtitle,
                   style: TextStyle(
                     fontSize: 15.sp,
                     color: ColorsManager.textPrimaryColor,

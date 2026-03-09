@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-import '../logic/cubit/schedule_cubit.dart';
-import '../logic/cubit/schedule_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:waratel_app/core/theming/colors.dart';
-import '../../../../core/di/dependency_injection.dart';
-import '../../../../core/widgets/info_card.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import 'package:waratel_app/core/di/dependency_injection.dart';
+import 'package:waratel_app/core/theming/colors.dart';
+import 'package:waratel_app/core/widgets/info_card.dart';
+import 'package:waratel_app/features/schedule/logic/cubit/schedule_cubit.dart';
+import 'package:waratel_app/features/schedule/logic/cubit/schedule_state.dart';
+import 'package:waratel_app/features/localization/data/app_localizations.dart';
+import 'package:waratel_app/features/localization/logic/cubit/locale_cubit.dart';
+import 'package:waratel_app/features/localization/logic/cubit/locale_state.dart';
 
 class AddAppointmentScreen extends StatefulWidget {
   const AddAppointmentScreen({super.key});
@@ -38,12 +41,12 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
   }
 
   // Group slots by period for display
-  List<Map<String, dynamic>> get periodGroups => [
-        {'label': '04 ص - 08 ص', 'icon': Icons.wb_sunny, 'color': Colors.amber, 'startHour': 4, 'endHour': 8},
-        {'label': '08 ص - 12 م', 'icon': Icons.wb_sunny, 'color': Colors.amber, 'startHour': 8, 'endHour': 12},
-        {'label': '12 م - 04 م', 'icon': Icons.wb_sunny, 'color': Colors.orange, 'startHour': 12, 'endHour': 16},
-        {'label': '04 م - 08 م', 'icon': Icons.cloud, 'color': Colors.blue, 'startHour': 16, 'endHour': 20},
-        {'label': '08 م - 12 ص', 'icon': Icons.nightlight_round, 'color': ColorsManager.primaryColor, 'startHour': 20, 'endHour': 24},
+  List<Map<String, dynamic>> periodGroups(BuildContext context) => [
+        {'label': 'period_morning_1'.tr(context), 'icon': Icons.wb_sunny, 'color': Colors.amber, 'startHour': 4, 'endHour': 8},
+        {'label': 'period_morning_2'.tr(context), 'icon': Icons.wb_sunny, 'color': Colors.amber, 'startHour': 8, 'endHour': 12},
+        {'label': 'period_afternoon'.tr(context), 'icon': Icons.wb_sunny, 'color': Colors.orange, 'startHour': 12, 'endHour': 16},
+        {'label': 'period_evening_1'.tr(context), 'icon': Icons.cloud, 'color': Colors.blue, 'startHour': 16, 'endHour': 20},
+        {'label': 'period_evening_2'.tr(context), 'icon': Icons.nightlight_round, 'color': ColorsManager.primaryColor, 'startHour': 20, 'endHour': 24},
       ];
 
   @override
@@ -75,7 +78,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
             appBar: AppBar(
               backgroundColor: ColorsManager.primaryColor,
               title: Text(
-                'إضافة المواعيد',
+                'add_appointments'.tr(context),
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 20.sp,
@@ -100,7 +103,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                       children: [
                         Expanded(
                             child: Text(
-                                'جدول المواعيد سارٍ لمدة شهرين وقابل للتعديل لاحقاً.',
+                                'schedule_warning_1'.tr(context),
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold,
@@ -117,7 +120,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                       children: [
                         Expanded(
                             child: Text(
-                                'أوقات الذروة في الأغلب من 4 الي 8 مساء.',
+                                'schedule_warning_2'.tr(context),
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold,
@@ -132,31 +135,31 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                   // Date Picker
                   Align(
                     alignment: Alignment.centerRight,
-                    child: Text(' : اختر التاريخ',
+                    child: Text('select_date'.tr(context),
                         style: TextStyle(
                             fontSize: 16.sp, fontWeight: FontWeight.bold)),
                   ),
                   SizedBox(height: 10.h),
-                  _buildDateSelector(),
+                  _buildDateSelector(context),
                   SizedBox(height: 25.h),
 
                   // Time Periods
                   Align(
                     alignment: Alignment.centerRight,
-                    child: Text('اختر الفترات الزمنية',
+                    child: Text('select_time_periods'.tr(context),
                         style: TextStyle(
                             fontSize: 16.sp, fontWeight: FontWeight.bold)),
                   ),
                   SizedBox(height: 8.h),
                   Text(
-                    'كل فترة 30 دقيقة — اضغط على الفترة لتوسيعها واختيار المواعيد',
+                    'period_instruction'.tr(context),
                     style: TextStyle(fontSize: 12.sp, color: Colors.grey),
                   ),
                   SizedBox(height: 15.h),
 
                   // Expandable period groups
-                  ...periodGroups.map((group) =>
-                      _buildPeriodGroup(group)),
+                  ...periodGroups(context).map((group) =>
+                      _buildPeriodGroup(context, group)),
 
                   SizedBox(height: 20.h),
 
@@ -165,7 +168,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                     Container(
                       padding: EdgeInsets.all(12.w),
                       decoration: BoxDecoration(
-                        color: ColorsManager.primaryColor.withOpacity(0.1),
+                        color: ColorsManager.primaryColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(10.r),
                       ),
                       child: Row(
@@ -175,7 +178,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                               color: ColorsManager.primaryColor, size: 20.sp),
                           SizedBox(width: 8.w),
                           Text(
-                            'تم اختيار ${selectedTimeSlotIndices.length} موعد',
+                            'selected_appointments_count'.tr(context).replaceFirst('%s', '${selectedTimeSlotIndices.length}'),
                             style: TextStyle(
                               fontSize: 14.sp,
                               fontWeight: FontWeight.bold,
@@ -214,7 +217,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                                 strokeWidth: 2,
                               ),
                             )
-                          : Text('حفظ المواعيد',
+                          : Text('save_appointments'.tr(context),
                               style: TextStyle(
                                   fontSize: 16.sp,
                                   fontWeight: FontWeight.bold)),
@@ -230,17 +233,19 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     );
   }
 
-  Widget _buildDateSelector() {
-    // For the UI display, we use 'ar' locale
-    final dateStr = DateFormat('EEEE، d MMMM yyyy', 'ar').format(selectedDate);
+  Widget _buildDateSelector(BuildContext context) {
+    final lang = context.read<LocaleCubit>().state is ChangeLocaleState 
+        ? (context.read<LocaleCubit>().state as ChangeLocaleState).locale.languageCode 
+        : 'ar';
+    final dateStr = DateFormat('EEEE، d MMMM yyyy', lang).format(selectedDate);
     return GestureDetector(
       onTap: () async {
         final picked = await showDatePicker(
           context: context,
           initialDate: selectedDate,
-          firstDate: DateTime.now().subtract(const Duration(days: 365)), // Start from last year
+          firstDate: DateTime.now().subtract(const Duration(days: 365)),
           lastDate: DateTime(2036),
-          locale: const Locale('ar'),
+          locale: Locale(lang),
         );
         if (picked != null) {
           setState(() {
@@ -255,7 +260,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
         decoration: BoxDecoration(
           border: Border.all(color: ColorsManager.primaryColor),
           borderRadius: BorderRadius.circular(12.r),
-          color: ColorsManager.primaryColor.withOpacity(0.05),
+          color: ColorsManager.primaryColor.withValues(alpha: 0.05),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -276,7 +281,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     );
   }
 
-  Widget _buildPeriodGroup(Map<String, dynamic> group) {
+  Widget _buildPeriodGroup(BuildContext context, Map<String, dynamic> group) {
     final int startHour = group['startHour'];
     final int endHour = group['endHour'];
 
@@ -356,7 +361,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                       size: 20.sp,
                     ),
                     label: Text(
-                      allSelected ? 'إلغاء تحديد الكل' : 'تحديد الكل',
+                      allSelected ? 'deselect_all'.tr(context) : 'select_all'.tr(context),
                       style: TextStyle(
                           fontSize: 12.sp, color: ColorsManager.primaryColor),
                     ),
@@ -398,7 +403,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                         ),
                       ),
                       child: Text(
-                        '${_formatTimeDisplay(slot['start']!)} - ${_formatTimeDisplay(slot['end']!)}',
+                        '${_formatTimeDisplay(context, slot['start']!)} - ${_formatTimeDisplay(context, slot['end']!)}',
                         style: TextStyle(
                           fontSize: 11.sp,
                           fontWeight: FontWeight.w600,
@@ -416,12 +421,12 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     );
   }
 
-  String _formatTimeDisplay(String time) {
+  String _formatTimeDisplay(BuildContext context, String time) {
     try {
       final parts = time.split(':');
       final hour = int.parse(parts[0]);
       final minute = parts[1];
-      final period = hour >= 12 ? 'م' : 'ص';
+      final period = hour >= 12 ? 'pm'.tr(context) : 'am'.tr(context);
       final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
       return '$displayHour:$minute $period';
     } catch (_) {

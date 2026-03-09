@@ -34,7 +34,7 @@ class _SessionsApi implements SessionsApi {
     )
         .compose(
           _dio.options,
-          '/teacher/sessions/my-sessions',
+          'teacher/sessions/my-sessions',
           queryParameters: queryParameters,
           data: _data,
         )
@@ -67,7 +67,7 @@ class _SessionsApi implements SessionsApi {
     )
         .compose(
           _dio.options,
-          '/teacher/sessions/${sessionId}/start',
+          'teacher/sessions/${sessionId}/start',
           queryParameters: queryParameters,
           data: _data,
         )
@@ -100,7 +100,7 @@ class _SessionsApi implements SessionsApi {
     )
         .compose(
           _dio.options,
-          '/teacher/sessions/${sessionId}/end',
+          'teacher/sessions/${sessionId}/end',
           queryParameters: queryParameters,
           data: _data,
         )
@@ -133,7 +133,7 @@ class _SessionsApi implements SessionsApi {
     )
         .compose(
           _dio.options,
-          '/teacher/sessions/${sessionId}/attendance',
+          'teacher/sessions/${sessionId}/attendance',
           queryParameters: queryParameters,
           data: _data,
         )

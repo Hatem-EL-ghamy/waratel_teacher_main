@@ -33,9 +33,9 @@ class TransactionItem extends StatelessWidget {
             width: 40.w,
             height: 40.w,
             decoration: BoxDecoration(
-              color: isIncome 
-                  ? ColorsManager.accentColor.withOpacity(0.1)
-                  : Colors.red.withOpacity(0.1),
+              color: isIncome
+                  ? ColorsManager.accentColor.withValues(alpha: 0.1)
+                  : Colors.red.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10.r),
             ),
             child: Icon(

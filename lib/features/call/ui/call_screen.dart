@@ -2,13 +2,15 @@ import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../core/agora/agora_service.dart';
-import '../../../../core/di/dependency_injection.dart';
-import '../../../../core/theming/colors.dart';
-import '../logic/cubit/call_cubit.dart';
-import '../logic/cubit/call_state.dart';
-import 'widgets/floating_mushaf.dart';
-import 'widgets/session_report_dialog.dart';
+import 'package:waratel_app/core/agora/agora_service.dart';
+import 'package:waratel_app/core/di/dependency_injection.dart';
+import 'package:waratel_app/core/theming/colors.dart';
+import 'package:waratel_app/features/call/logic/cubit/call_cubit.dart';
+import 'package:waratel_app/features/call/logic/cubit/call_state.dart';
+import 'package:waratel_app/features/call/ui/widgets/floating_mushaf.dart';
+import 'package:waratel_app/features/call/ui/widgets/session_report_dialog.dart';
+import 'package:waratel_app/features/localization/data/app_localizations.dart';
+import 'package:intl/intl.dart';
 
 class CallScreen extends StatefulWidget {
   final String token;
@@ -21,7 +23,7 @@ class CallScreen extends StatefulWidget {
     required this.token,
     required this.channelName,
     required this.uid,
-    this.studentName = 'طالب',
+    this.studentName = '',
   });
 
   @override
@@ -30,6 +32,13 @@ class CallScreen extends StatefulWidget {
 
 class _CallScreenState extends State<CallScreen> {
   final AgoraService _agoraService = getIt<AgoraService>();
+  String? _callStartTime;
+
+  @override
+  void initState() {
+    super.initState();
+    _callStartTime = DateFormat.jm().format(DateTime.now());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,26 +60,50 @@ class _CallScreenState extends State<CallScreen> {
         builder: (context, state) {
           final cubit = context.read<CallCubit>();
           
-          return Scaffold(
-            backgroundColor: const Color(0xFF1E1E1E),
-            body: Stack(
-              children: [
-                // 1. Remote Video (Full Screen)
-                _buildRemoteVideo(context, cubit),
+          return PopScope(
+            // منع الخروج العرضي من المكالمة بزر الرجوع
+            canPop: false,
+            onPopInvokedWithResult: (didPop, result) {
+              if (!didPop) {
+                showDialog(
+                  context: context,
+                  builder: (dialogContext) => SessionReportDialog(
+                    studentName: widget.studentName.isEmpty
+                        ? 'student'.tr(context)
+                        : widget.studentName,
+                    trackName: 'memorization_track'.tr(context),
+                    startTime: _callStartTime,
+                    duration: cubit.currentDurationString,
+                    onSuccess: () {
+                      cubit.endCall();
+                      Navigator.pop(dialogContext); // Close dialog
+                      Navigator.pop(context);       // Close CallScreen
+                    },
+                  ),
+                );
+              }
+            },
+            child: Scaffold(
+              backgroundColor: const Color(0xFF1E1E1E),
+              body: Stack(
+                children: [
+                  // 1. Remote Video (Full Screen)
+                  _buildRemoteVideo(context, cubit),
 
-                // 2. Local Preview (Small Overlay)
-                _buildLocalPreview(context, cubit),
+                  // 2. Local Preview (Small Overlay)
+                  _buildLocalPreview(context, cubit),
 
-                // 3. Top Bar (Student Info & Timer)
-                _buildTopBar(context, cubit),
+                  // 3. Top Bar (Student Info & Timer)
+                  _buildTopBar(context, cubit),
 
-                // 4. Bottom Controls
-                _buildBottomControls(context, cubit),
+                  // 4. Bottom Controls
+                  _buildBottomControls(context, cubit),
 
-                // 5. Floating Mushaf Overlay
-                if (cubit.isMushafOpen)
-                   FloatingMushaf(onClose: () => cubit.toggleMushaf()),
-              ],
+                  // 5. Floating Mushaf Overlay
+                  if (cubit.isMushafOpen)
+                     FloatingMushaf(onClose: () => cubit.toggleMushaf()),
+                ],
+              ),
             ),
           );
         },
@@ -86,12 +119,12 @@ class _CallScreenState extends State<CallScreen> {
           children: [
             CircleAvatar(
               radius: 50.r,
-              backgroundColor: Colors.blue.withOpacity(0.2),
+              backgroundColor: Colors.blue.withValues(alpha: 0.2),
               child: Icon(Icons.person, size: 60.sp, color: Colors.white54),
             ),
             SizedBox(height: 20.h),
             Text(
-              !_agoraService.isInitialized ? 'جاري تهيئة الاتصال...' : 'بانتظار انضمام الطالب...',
+              !_agoraService.isInitialized ? 'initializing_call'.tr(context) : 'waiting_for_student'.tr(context),
               style: TextStyle(color: Colors.white, fontSize: 16.sp),
             ),
           ],
@@ -148,7 +181,7 @@ class _CallScreenState extends State<CallScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.black.withOpacity(0.7), Colors.transparent],
+            colors: [Colors.black.withValues(alpha: 0.7), Colors.transparent],
           ),
         ),
         child: Row(
@@ -158,7 +191,7 @@ class _CallScreenState extends State<CallScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.studentName,
+                  widget.studentName.isEmpty ? 'student'.tr(context) : widget.studentName,
                   style: TextStyle(color: Colors.white, fontSize: 18.sp, fontWeight: FontWeight.bold),
                 ),
                 BlocBuilder<CallCubit, CallState>(
@@ -173,10 +206,7 @@ class _CallScreenState extends State<CallScreen> {
                 ),
               ],
             ),
-            IconButton(
-              icon: const Icon(Icons.info_outline, color: Colors.white),
-              onPressed: () {},
-            ),
+            // مؤقت المكالمة يُعرض في الـ Timer widget أدناه
           ],
         ),
       ),
@@ -212,8 +242,10 @@ class _CallScreenState extends State<CallScreen> {
                showDialog(
                 context: context,
                 builder: (context) => SessionReportDialog(
-                  studentName: widget.studentName,
-                  trackName: 'مسار التحفيظ',
+                  studentName: widget.studentName.isEmpty ? 'student'.tr(context) : widget.studentName,
+                  trackName: 'memorization_track'.tr(context),
+                  startTime: _callStartTime,
+                  duration: cubit.currentDurationString,
                   onSuccess: () {
                     cubit.endCall();
                     Navigator.pop(context); // Close dialog

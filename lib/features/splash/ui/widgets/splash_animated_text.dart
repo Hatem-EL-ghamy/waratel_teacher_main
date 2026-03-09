@@ -48,7 +48,7 @@ class SplashAnimatedText extends StatelessWidget {
             foreground: Paint()
               ..style = PaintingStyle.stroke
               ..strokeWidth = 6
-              ..color = AppColors.accentColor.withOpacity(0.5),
+              ..color = ColorsManager.accentColor.withValues(alpha: 0.5),
             letterSpacing: 3,
             height: 1.2,
           ),
@@ -64,7 +64,7 @@ class SplashAnimatedText extends StatelessWidget {
             shadows: [
               Shadow(
                 color:
-                    const Color.fromARGB(255, 228, 226, 226).withOpacity(0.3),
+                    const Color.fromARGB(255, 228, 226, 226).withValues(alpha: 0.3),
                 offset: const Offset(0, 4),
                 blurRadius: 10,
               ),
@@ -86,10 +86,10 @@ class SplashAnimatedText extends StatelessWidget {
             '۞',
             style: TextStyle(
               fontSize: 24.sp,
-              color: AppColors.accentColor,
+              color: ColorsManager.accentColor,
               shadows: [
                 Shadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 4,
                 ),
               ],
@@ -109,7 +109,7 @@ class SplashAnimatedText extends StatelessWidget {
         gradient: LinearGradient(
           colors: [
             Colors.transparent,
-            AppColors.accentColor.withOpacity(0.4), // درجة ذهبية هادئة جداً
+            ColorsManager.accentColor.withValues(alpha: 0.4), // درجة ذهبية هادئة جداً
             Colors.transparent,
           ],
         ),
@@ -123,19 +123,19 @@ class SplashAnimatedText extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.greenDark.withOpacity(0.3),
-            AppColors.greenDark.withOpacity(0.1),
-            AppColors.greenDark.withOpacity(0.3),
+            ColorsManager.greenDark.withValues(alpha: 0.3),
+            ColorsManager.greenDark.withValues(alpha: 0.1),
+            ColorsManager.greenDark.withValues(alpha: 0.3),
           ],
         ),
         borderRadius: BorderRadius.circular(25),
         border: Border.all(
-          color: AppColors.accentColor.withOpacity(0.2), // إطار خفيف جداً
+          color: ColorsManager.accentColor.withValues(alpha: 0.2), // إطار خفيف جداً
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             spreadRadius: 1,
           ),
@@ -151,7 +151,7 @@ class SplashAnimatedText extends StatelessWidget {
           height: 1.5,
           shadows: [
             Shadow(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(alpha: 0.3),
               offset: const Offset(0, 2),
               blurRadius: 6,
             ),

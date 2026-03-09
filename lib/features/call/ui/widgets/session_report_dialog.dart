@@ -1,20 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../core/theming/colors.dart';
-import '../../../../core/di/dependency_injection.dart';
-import '../../../../features/home/logic/cubit/home_cubit.dart';
-import '../../../../features/record/logic/cubit/record_cubit.dart';
-import '../../../../features/record/data/models/session_model.dart';
+import 'package:waratel_app/core/theming/colors.dart';
+import 'package:waratel_app/core/di/dependency_injection.dart';
+import 'package:waratel_app/features/home/logic/cubit/home_cubit.dart';
+import 'package:waratel_app/features/record/logic/cubit/record_cubit.dart';
+import 'package:waratel_app/features/record/data/models/session_model.dart';
+import 'package:waratel_app/features/localization/data/app_localizations.dart';
+import 'package:waratel_app/features/call/data/models/call_model.dart';
+import 'package:intl/intl.dart';
 
 class SessionReportDialog extends StatefulWidget {
   final String studentName;
   final String trackName;
+  final String? startTime;
+  final String? duration;
   final VoidCallback? onSuccess;
 
   const SessionReportDialog({
     super.key,
     required this.studentName,
     required this.trackName,
+    this.startTime,
+    this.duration,
     this.onSuccess,
   });
 
@@ -23,12 +30,23 @@ class SessionReportDialog extends StatefulWidget {
 }
 
 class _SessionReportDialogState extends State<SessionReportDialog> {
+  final notesController = TextEditingController();
+  final nextAssignmentController = TextEditingController();
+  String selectedRating = 'excellent';
   bool isPresent = true;
-  String selectedRating = 'ممتاز';
-  final TextEditingController notesController = TextEditingController();
-  final TextEditingController nextAssignmentController = TextEditingController();
 
-  final List<String> ratings = ['ممتاز', 'جيد جداً', 'جيد', 'يحتاج متابعة'];
+  @override
+  void initState() {
+    super.initState();
+    selectedRating = 'excellent';
+  }
+
+  final List<String> ratings = [
+    'excellent',
+    'very_good',
+    'good',
+    'needs_follow_up'
+  ];
 
   @override
   void dispose() {
@@ -39,18 +57,27 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final dateStr = DateFormat('yyyy-M-d').format(now);
+    // Use jm() for localized 12h format (e.g. 6:57 PM or 6:57 م)
+    final timeStr = widget.startTime ?? DateFormat.jm().format(now);
+
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
       insetPadding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
       child: Container(
         padding: EdgeInsets.all(20.w),
         width: double.infinity,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20.r),
+          color: Colors.white,
+        ),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'تقرير الجلسة',
+                'session_report'.tr(context),
                 style: TextStyle(
                   fontSize: 20.sp,
                   fontWeight: FontWeight.bold,
@@ -59,7 +86,7 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
               ),
               SizedBox(height: 5.h),
               Text(
-                'يجب إكمال التقرير لتحديث سجل الطالب وتثبيت الجلسة',
+                'report_instruction'.tr(context),
                 style: TextStyle(
                   fontSize: 12.sp,
                   color: Colors.grey,
@@ -68,54 +95,89 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
               ),
               SizedBox(height: 20.h),
               
-              // Student Info
+              // Student Info Header (Compact)
+              Container(
+                padding: EdgeInsets.all(12.w),
+                decoration: BoxDecoration(
+                  color: ColorsManager.primaryColor.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(15.r),
+                ),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 25.r,
+                      backgroundColor: ColorsManager.primaryColor.withValues(alpha: 0.12),
+                      child: Icon(Icons.person, color: ColorsManager.primaryColor, size: 30.sp),
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.studentName,
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.bold,
+                              color: ColorsManager.textPrimaryColor,
+                            ),
+                          ),
+                          Text(
+                            widget.trackName,
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: ColorsManager.primaryColor,
+                              fontWeight: FontWeight.bold
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              SizedBox(height: 15.h),
+
+              // Automatic Data (Date & Time)
               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        widget.studentName,
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.bold,
-                          color: ColorsManager.textPrimaryColor,
-                        ),
-                      ),
-                      Text(
-                        widget.trackName,
-                        style: TextStyle(
-                          fontSize: 12.sp,
-                          color: ColorsManager.primaryColor,
-                          fontWeight: FontWeight.bold
-                        ),
-                      ),
-                    ],
+                   _buildAutoDataBox(
+                    context, 
+                    'date'.tr(context), 
+                    dateStr, 
+                    Icons.calendar_today,
+                    Colors.blue
                   ),
-                  SizedBox(width: 12.w),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12.r),
-                    child: Container(
-                         width: 50.w,
-                         height: 50.w,
-                         color: Colors.grey.shade300,
-                         child: Icon(Icons.person, color: Colors.white, size: 30.sp),
-                    )
+                  SizedBox(width: 8.w),
+                  _buildAutoDataBox(
+                    context, 
+                    'session_time'.tr(context), 
+                    timeStr, 
+                    Icons.access_time,
+                    Colors.orange
+                  ),
+                  SizedBox(width: 8.w),
+                  _buildAutoDataBox(
+                    context, 
+                    'duration_label'.tr(context), 
+                    widget.duration ?? '00:00', 
+                    Icons.timer_outlined,
+                    Colors.green
                   ),
                 ],
               ),
-              
-              Divider(height: 30.h),
+
+              Divider(height: 30.h, color: Colors.grey.shade100),
               
               // Attendance
-              _buildSectionTitle('حالة الحضور'),
+              _buildSectionTitle('attendance_status'.tr(context)),
               SizedBox(height: 10.h),
               Row(
                 children: [
                   Expanded(
                     child: _buildAttendanceOption(
-                      label: 'غائب',
+                      label: 'absent'.tr(context),
                       isSelected: !isPresent,
                       onTap: () => setState(() => isPresent = false),
                     ),
@@ -123,7 +185,7 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
                   SizedBox(width: 10.w),
                   Expanded(
                     child: _buildAttendanceOption(
-                      label: 'حاضر',
+                      label: 'present'.tr(context),
                       isSelected: isPresent,
                       onTap: () => setState(() => isPresent = true),
                       isPositive: true,
@@ -135,7 +197,7 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
               SizedBox(height: 20.h),
               
               // Rating
-              _buildSectionTitle('تقييم مستوى التلقي'),
+              _buildSectionTitle('reception_rating'.tr(context)),
               SizedBox(height: 10.h),
               Wrap(
                 spacing: 10.w,
@@ -145,7 +207,7 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
                    return SizedBox(
                      width: (MediaQuery.of(context).size.width - 100.w) / 2, // Approx half width
                      child: _buildRatingOption(
-                       label: rating,
+                       label: rating.tr(context),
                        isSelected: selectedRating == rating,
                        onTap: () => setState(() => selectedRating = rating),
                      ),
@@ -156,23 +218,24 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
               SizedBox(height: 20.h),
               
               // Notes
-              _buildSectionTitle('الملاحظات التعليمية والشرعية'),
+              _buildSectionTitle('educational_notes'.tr(context)),
               SizedBox(height: 10.h),
               TextFormField(
                 controller: notesController,
-                maxLines: 4,
+                maxLines: 3,
+                style: TextStyle(fontSize: 14.sp),
                 decoration: InputDecoration(
-                  hintText: 'ملاحظات حول المخارج، التجويد، أو الحفظ...',
+                  hintText: 'educational_notes_hint'.tr(context),
                   hintStyle: TextStyle(fontSize: 12.sp, color: Colors.grey.shade500),
                   filled: true,
                   fillColor: Colors.grey.shade50,
                    border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.r),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.r),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.r),
@@ -182,24 +245,25 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
               ),
 
               SizedBox(height: 20.h),
-               // Next Assignment
-              _buildSectionTitle('الورد القادم المقترح'),
+               // Next Assignment (Now called Session Content in localizations)
+              _buildSectionTitle('next_assignment_label'.tr(context)),
               SizedBox(height: 10.h),
               TextFormField(
                 controller: nextAssignmentController,
+                style: TextStyle(fontSize: 14.sp),
                  decoration: InputDecoration(
-                  hintText: 'مثال: من الآية 10 إلى 25 سورة البقرة',
+                  hintText: 'assignment_example'.tr(context),
                   hintStyle: TextStyle(fontSize: 12.sp, color: Colors.grey.shade500),
                   filled: true,
                   fillColor: Colors.grey.shade50,
-                  prefixIcon: Icon(Icons.menu_book, color: Colors.grey.shade500),
+                  prefixIcon: Icon(Icons.menu_book, color: ColorsManager.primaryColor, size: 20.sp),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.r),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.r),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.r),
@@ -216,14 +280,15 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
                 child: ElevatedButton(
                   onPressed: _saveAndEnd,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: ColorsManager.primaryColor, // Dark green
+                    backgroundColor: ColorsManager.primaryColor,
                     padding: EdgeInsets.symmetric(vertical: 14.h),
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30.r),
+                      borderRadius: BorderRadius.circular(12.r),
                     ),
                   ),
                   child: Text(
-                    'حفظ التقرير وإنهاء الجلسة',
+                    'save_report_end_session'.tr(context),
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 16.sp,
@@ -238,6 +303,50 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
       ),
     );
   }
+
+  Widget _buildAutoDataBox(BuildContext context, String label, String value, IconData icon, Color color) {
+    return Expanded(
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 4.w),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(color: color.withValues(alpha: 0.1)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: color, size: 12.sp),
+                SizedBox(width: 4.w),
+                Flexible(
+                  child: Text(
+                    label,
+                    style: TextStyle(color: Colors.grey, fontSize: 9.sp),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 4.h),
+            Text(
+              value,
+              style: TextStyle(
+                color: ColorsManager.textPrimaryColor,
+                fontWeight: FontWeight.bold,
+                fontSize: 12.sp,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
   
   void _saveAndEnd() {
     final now = DateTime.now();
@@ -245,13 +354,14 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
     // Create Session Model
     final session = SessionModel(
       studentName: widget.studentName,
-      date: '${now.year}-${now.month}-${now.day}',
-      time: '${now.hour}:${now.minute.toString().padLeft(2, '0')}',
+      date: DateFormat('yyyy-M-d').format(now),
+      time: widget.startTime ?? DateFormat.jm().format(now),
+      duration: widget.duration ?? '00:00',
       trackName: widget.trackName,
-      status: 'مكتملة', 
+      status: 'completed'.tr(context), 
       notes: notesController.text,
       nextAssignment: nextAssignmentController.text,
-      rating: selectedRating,
+      rating: selectedRating.tr(context),
       isPresent: isPresent,
     );
     
@@ -259,11 +369,16 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
     getIt<RecordCubit>().addSession(session);
     
     // Also update HomeCubit for recent calls (keep existing behavior for compatibility)
-    final callData = {
-      'name': widget.studentName,
-      'initial': widget.studentName.isNotEmpty ? widget.studentName.characters.first : '',
-    };
-    getIt<HomeCubit>().addCall(callData);
+    final newReview = CallModel(
+      id: 0,
+      studentName: widget.studentName,
+      status: 'ended',
+      durationMinutes: 0,
+      date: DateFormat('yyyy-MM-dd').format(now),
+      time: DateFormat.jm().format(now),
+      rating: 5,
+    );
+    getIt<HomeCubit>().addCall(newReview);
     
     // Check if we have a success callback for specific cleanup (e.g. ending Agora session)
     if (widget.onSuccess != null) {
@@ -302,7 +417,7 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 12.h),
         decoration: BoxDecoration(
-          color: isSelected ? activeColor.withOpacity(0.1) : Colors.white,
+          color: isSelected ? activeColor.withValues(alpha: 0.1) : Colors.white,
           borderRadius: BorderRadius.circular(12.r),
           border: Border.all(
             color: isSelected ? activeColor : Colors.grey.shade300,
@@ -341,7 +456,7 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
           child: Text(
             label,
             style: TextStyle(
-              color: isSelected ? Colors.white : ColorsManager.textPrimaryColor.withOpacity(0.7),
+              color: isSelected ? Colors.white : ColorsManager.textPrimaryColor.withValues(alpha: 0.7),
               fontWeight: FontWeight.bold,
               fontSize: 13.sp,
             ),

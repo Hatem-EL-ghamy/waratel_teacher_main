@@ -1,4 +1,4 @@
-package com.example.waratel_app
+package com.waratel.teacher
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,14 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../data/repos/profile_repo.dart';
-import '../../data/models/profile_models.dart';
-import 'profile_state.dart';
+import 'package:waratel_app/features/profile/data/repos/profile_repo.dart';
+import 'package:waratel_app/features/profile/data/models/profile_models.dart';
+import 'package:waratel_app/features/profile/logic/cubit/profile_state.dart';
 
 class ProfileCubit extends Cubit<ProfileState> {
   final ProfileRepo profileRepo;
 
-  ProfileCubit(this.profileRepo) : super(ProfileInitial()) {
-    getProfile();
-  }
+  ProfileCubit(this.profileRepo) : super(ProfileInitial());
 
   ProfileResponse? profileData;
 

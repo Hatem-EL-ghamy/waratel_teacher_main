@@ -1,10 +1,10 @@
 import 'ratings_state.dart';
-import '../../data/models/maqraa_model.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/agora/agora_service.dart';
 import '../../../record/logic/cubit/record_cubit.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:waratel_app/features/ratings/data/repos/sessions_repo.dart';
+import 'package:intl/intl.dart';
 import 'package:waratel_app/features/ratings/data/models/session_model.dart';
 import '../../../record/data/models/session_model.dart' as record_model;
  
@@ -18,7 +18,6 @@ class RatingsCubit extends Cubit<RatingsState> {
 
   List<SessionItem> _sessions = [];
   SessionItem? _activeSession;
-  StartSessionData? _agoraData;
 
   Future<void> checkStatus() async {
     emit(RatingsLoading());
@@ -56,7 +55,6 @@ class RatingsCubit extends Cubit<RatingsState> {
     try {
       final data = await _sessionsRepo.startSession(session.id);
       _activeSession = session;
-      _agoraData = data;
 
       // Initialize and Join Agora
       if (session.title.contains('فيديو')) { // Checking for video based on title or model if available
@@ -87,12 +85,11 @@ class RatingsCubit extends Cubit<RatingsState> {
     
     emit(RatingsLoading());
     try {
-      final response = await _sessionsRepo.endSession(_activeSession!.id);
+      await _sessionsRepo.endSession(_activeSession!.id);
       await _agoraService.leaveChannel();
       
       final session = _activeSession!;
       _activeSession = null;
-      _agoraData = null;
       
       emit(RatingsSessionEnded(
         session: session,
@@ -126,8 +123,9 @@ class RatingsCubit extends Cubit<RatingsState> {
       
       final record = record_model.SessionModel(
         studentName: sessionItem.title, // Use title as name for group sessions
-        date: '${now.year}-${now.month}-${now.day}',
-        time: '${now.hour}:${now.minute.toString().padLeft(2, '0')}',
+        date: DateFormat('yyyy-M-d').format(now),
+        time: DateFormat.jm().format(now),
+        duration: '--:--', // Duration for group sessions not currently tracked 
         trackName: 'حلقة جماعية',
         status: 'مكتملة',
         notes: notes.isNotEmpty ? notes : 'حضور: $presentCount/${attendance.length} من الطلاب',
@@ -138,7 +136,6 @@ class RatingsCubit extends Cubit<RatingsState> {
       _recordCubit.addSession(record);
 
       _activeSession = null;
-      _agoraData = null;
       
       emit(RatingsSessionEnded(
         session: sessionItem,

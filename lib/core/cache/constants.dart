@@ -17,6 +17,12 @@ class AppConstants {
   /// مفتاح حفظ حالة عرض الـ Onboarding
   static const String hasSeenOnboardingKey = 'has_seen_onboarding';
 
+  /// مفتاح حفظ معرف المعلم (للاستخدام في Pusher عند فتح التطبيق مجدداً)
+  static const String teacherIdKey = 'teacher_id';
+
+  /// مفتاح حفظ حالة الموافقة على الشروط
+  static const String hasAgreedToTermsKey = 'has_agreed_to_terms';
+
   // ========== إعدادات التطبيق ==========
   
   /// اسم التطبيق

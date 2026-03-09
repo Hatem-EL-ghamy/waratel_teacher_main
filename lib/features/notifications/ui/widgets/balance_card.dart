@@ -23,7 +23,7 @@ class BalanceCard extends StatelessWidget {
         gradient: LinearGradient(
           colors: [
             ColorsManager.primaryColor,
-            ColorsManager.primaryColor.withOpacity(0.8),
+            ColorsManager.primaryColor.withValues(alpha: 0.8),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -31,7 +31,7 @@ class BalanceCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-            color: ColorsManager.primaryColor.withOpacity(0.3),
+            color: ColorsManager.primaryColor.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -42,7 +42,7 @@ class BalanceCard extends StatelessWidget {
           Text(
             'الرصيد الكلي المتبقي',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
               fontSize: 14.sp,
             ),
           ),

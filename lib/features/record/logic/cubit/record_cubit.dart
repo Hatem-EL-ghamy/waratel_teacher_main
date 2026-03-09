@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'record_state.dart';
-import '../../data/models/session_model.dart';
+import 'package:waratel_app/features/record/logic/cubit/record_state.dart';
+import 'package:waratel_app/features/record/data/models/session_model.dart';
 
 class RecordCubit extends Cubit<RecordState> {
   RecordCubit() : super(RecordInitial()) {
@@ -27,7 +27,6 @@ class RecordCubit extends Cubit<RecordState> {
             final decoded = jsonDecode(sessionString);
             _sessions.add(SessionModel.fromJson(decoded));
           } catch (e) {
-            print('Error decoding session: $e');
             // Skip corrupt record
           }
         }
@@ -35,7 +34,6 @@ class RecordCubit extends Cubit<RecordState> {
       
       emit(RecordLoaded(_sessions));
     } catch (e) {
-      print('Error loading sessions: $e');
       emit(RecordError('فشل تحميل السجلات: $e'));
     }
   }
@@ -54,7 +52,7 @@ class RecordCubit extends Cubit<RecordState> {
       
       await prefs.setStringList(_prefsKey, sessionsJson);
     } catch (e) {
-      print('Error saving session: $e');
+      // print('Error saving session: $e');
       emit(RecordError('فشل حفظ السجل: $e'));
     }
   }

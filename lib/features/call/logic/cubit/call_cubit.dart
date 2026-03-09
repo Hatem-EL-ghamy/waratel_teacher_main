@@ -10,12 +10,14 @@ class CallCubit extends Cubit<CallState> {
   CallCubit(this._agoraService) : super(CallInitial());
 
   bool isMicOn = true;
-  bool isCamOn = true;
+  bool isCamOn = false; // ← الكاميرا مُغلقة عند بدء المكالمة
   bool isMushafOpen = false;
   Timer? _timer;
   int _secondsElapsed = 0;
   
   int? remoteUid;
+  
+  String get currentDurationString => _formatDuration(_secondsElapsed);
 
   Future<void> startCall({
     required String token,

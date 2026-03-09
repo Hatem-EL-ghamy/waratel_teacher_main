@@ -1,12 +1,14 @@
-import 'widgets/session_card.dart';
 import 'package:flutter/material.dart';
-import '../logic/cubit/record_cubit.dart';
-import '../logic/cubit/record_state.dart';
-import '../../../../core/theming/colors.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/di/dependency_injection.dart';
-import '../../../../core/widgets/custom_app_header.dart';
+import 'package:waratel_app/core/theming/colors.dart';
+import 'package:waratel_app/features/localization/data/app_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:waratel_app/core/di/dependency_injection.dart';
+import 'package:waratel_app/core/widgets/custom_app_header.dart';
+import 'package:waratel_app/features/record/logic/cubit/record_cubit.dart';
+import 'package:waratel_app/features/record/logic/cubit/record_state.dart';
+import 'package:waratel_app/features/record/ui/widgets/session_card.dart';
+import 'package:waratel_app/core/routing/routers.dart';
 
 class RecordScreen extends StatelessWidget {
   const RecordScreen({super.key});
@@ -17,7 +19,7 @@ class RecordScreen extends StatelessWidget {
       value: getIt<RecordCubit>(),
       child: Column(
         children: [
-          const CustomAppHeader(title: 'جلساتي'),
+          CustomAppHeader(title: 'sessions'.tr(context)),
           Expanded(
             child: SingleChildScrollView(
               padding: EdgeInsets.all(16.w),
@@ -26,7 +28,7 @@ class RecordScreen extends StatelessWidget {
                 children: [
                   // Title
                   Text(
-                    'سجل الجلسات',
+                    'sessions_record'.tr(context),
                     style: TextStyle(
                       fontSize: 20.sp,
                       fontWeight: FontWeight.bold,
@@ -36,7 +38,7 @@ class RecordScreen extends StatelessWidget {
                   SizedBox(height: 8.h),
                   // Subtitle
                   Text(
-                    'عرض الجلسات السابقة المسجلة وتفاصيلها',
+                    'sessions_history_subtitle'.tr(context),
                     style: TextStyle(
                       fontSize: 13.sp,
                       color: Colors.grey[600],
@@ -52,15 +54,36 @@ class RecordScreen extends StatelessWidget {
                       } else if (state is RecordLoaded) {
                         if (state.sessions.isEmpty) {
                           return Center(
-                            child: Column(
-                              children: [
-                                Icon(Icons.history, size: 64.sp, color: Colors.grey[300]),
-                                SizedBox(height: 16.h),
-                                Text(
-                                  'لا توجد جلسات مسجلة بعد',
-                                  style: TextStyle(color: Colors.grey[500], fontSize: 14.sp),
-                                ),
-                              ],
+                            child: Padding(
+                              padding: EdgeInsets.only(top: 80.h),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.all(24.r),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade50,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(Icons.assignment_outlined, size: 80.sp, color: Colors.grey[300]),
+                                  ),
+                                  SizedBox(height: 24.h),
+                                  Text(
+                                    'no_recorded_sessions'.tr(context),
+                                    style: TextStyle(
+                                      color: ColorsManager.textPrimaryColor.withValues(alpha: 0.6),
+                                      fontSize: 16.sp,
+                                      fontWeight: FontWeight.bold
+                                    ),
+                                  ),
+                                  SizedBox(height: 8.h),
+                                  Text(
+                                    'sessions_history_subtitle'.tr(context),
+                                    style: TextStyle(color: Colors.grey[500], fontSize: 13.sp),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
                             ),
                           );
                         }
@@ -73,11 +96,18 @@ class RecordScreen extends StatelessWidget {
                             return SessionCard(
                               studentName: session.studentName,
                               time: session.time,
+                              duration: session.duration,
                               date: session.date,
-                              status: session.status,
-                              statusColor: session.isPresent ? Colors.blue : Colors.red, // Example coloring
-                              reportCenter: 'عرض التقرير', // Changed label
-                              onReportTap: () => _showSessionDetails(context, session),
+                              status: session.isPresent ? 'present'.tr(context) : 'absent'.tr(context),
+                              statusColor: session.isPresent ? Colors.blue : Colors.red,
+                              reportCenter: 'view_report'.tr(context),
+                              onReportTap: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  Routes.sessionDetails,
+                                  arguments: session,
+                                );
+                              },
                             );
                           },
                         );
@@ -85,7 +115,7 @@ class RecordScreen extends StatelessWidget {
                          return Center(
                            child: Text(
                              state.error,
-                             style: TextStyle(color: Colors.red),
+                             style: const TextStyle(color: Colors.red),
                            ),
                          );
                       }
@@ -96,62 +126,6 @@ class RecordScreen extends StatelessWidget {
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  void _showSessionDetails(BuildContext context, dynamic session) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
-        child: Padding(
-          padding: EdgeInsets.all(20.w),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Text(
-                  'تفاصيل الجلسة',
-                  style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
-                ),
-              ),
-              Divider(height: 30.h),
-              _buildDetailRow('الطالب:', session.studentName),
-              _buildDetailRow('المسار:', session.trackName),
-              _buildDetailRow('التاريخ:', '${session.date} - ${session.time}'),
-              _buildDetailRow('الحالة:', session.isPresent ? 'حاضر' : 'غائب'),
-              _buildDetailRow('التقييم:', session.rating),
-              SizedBox(height: 10.h),
-              Text('الملاحظات:', style: TextStyle(fontWeight: FontWeight.bold, color: ColorsManager.primaryColor)),
-              Text(session.notes.isEmpty ? 'لا توجد ملاحظات' : session.notes),
-              SizedBox(height: 10.h),
-              Text('الواجب القادم:', style: TextStyle(fontWeight: FontWeight.bold, color: ColorsManager.primaryColor)),
-              Text(session.nextAssignment.isEmpty ? 'لم يحدد' : session.nextAssignment),
-              SizedBox(height: 20.h),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('إغلاق'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 8.h),
-      child: Row(
-        children: [
-          Text('$label ', style: TextStyle(fontWeight: FontWeight.bold, color: ColorsManager.primaryColor)),
-          Expanded(child: Text(value)),
         ],
       ),
     );

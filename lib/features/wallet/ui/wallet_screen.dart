@@ -1,141 +1,238 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theming/colors.dart';
-import '../../../../core/widgets/custom_app_header.dart';
-import 'withdrawal_bottom_sheet.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:waratel_app/core/theming/colors.dart';
+import '../../localization/data/app_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:waratel_app/core/di/dependency_injection.dart';
+import 'package:waratel_app/core/widgets/custom_app_header.dart';
+import 'package:waratel_app/features/wallet/logic/cubit/wallet_cubit.dart';
+import 'package:waratel_app/features/wallet/logic/cubit/wallet_state.dart';
+import 'package:waratel_app/features/wallet/data/models/wallet_models.dart';
+import 'package:waratel_app/features/wallet/ui/withdrawal_bottom_sheet.dart';
 
 class WalletScreen extends StatelessWidget {
   const WalletScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const CustomAppHeader(title: 'المحفظة'),
-        Expanded(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.all(16.w),
-            child: Column(
-              children: [
-                // Balance Card
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(20.w),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        ColorsManager.primaryColor,
-                        ColorsManager.primaryColor.withOpacity(0.8),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(20.r),
-                    boxShadow: [
-                      BoxShadow(
-                        color: ColorsManager.primaryColor.withOpacity(0.3),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
+    return BlocProvider(
+      create: (context) => getIt<WalletCubit>()..getWalletData(),
+      child: BlocListener<WalletCubit, WalletState>(
+        listener: (context, state) {
+          if (state is CancelRequestSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                  content: Text(state.message), backgroundColor: Colors.green),
+            );
+          } else if (state is CancelRequestError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                  content: Text(state.message), backgroundColor: Colors.red),
+            );
+          }
+        },
+        child: BlocBuilder<WalletCubit, WalletState>(
+          buildWhen: (previous, current) =>
+              current is WalletLoading ||
+              current is WalletSuccess ||
+              current is WalletError,
+          builder: (context, state) {
+          if (state is WalletLoading) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is WalletError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(state.message),
+                  ElevatedButton(
+                    onPressed: () =>
+                        context.read<WalletCubit>().getWalletData(),
+                    child: Text('retry'.tr(context)),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                ],
+              ),
+            );
+          } else if (state is WalletSuccess) {
+            final wallet = state.walletData.wallet;
+            final recentWithdrawals = state.walletData.recentWithdrawals;
+            return RefreshIndicator(
+              onRefresh: () => context.read<WalletCubit>().getWalletData(),
+              child: Column(
+                children: [
+                  CustomAppHeader(title: 'wallet_title'.tr(context)),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.all(16.w),
+                      child: Column(
                         children: [
-                          Text(
-                            'الرصيد الحالي',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14.sp,
+                          // Balance Card
+                          Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.all(20.w),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  ColorsManager.primaryColor,
+                                  ColorsManager.primaryColor
+                                      .withValues(alpha: 0.8),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(20.r),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: ColorsManager.primaryColor
+                                      .withValues(alpha: 0.3),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 5),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'current_balance'.tr(context),
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 14.sp,
+                                      ),
+                                    ),
+                                    Icon(Icons.account_balance_wallet,
+                                        color: Colors.white70, size: 24.sp),
+                                  ],
+                                ),
+                                SizedBox(height: 10.h),
+                                Text(
+                                  '${wallet.currentBalance} ${wallet.currency}',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 32.sp,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(height: 12.h),
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 12.w, vertical: 8.h),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(12.r),
+                                    border: Border.all(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.1),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.all(4.w),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white
+                                              .withValues(alpha: 0.2),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(Icons.timer_outlined,
+                                            color: Colors.white, size: 14.sp),
+                                      ),
+                                      SizedBox(width: 8.w),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'minutes'.tr(context),
+                                            style: TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 10.sp,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          Text(
+                                            '${wallet.totalMinutes}',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 15.sp,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(height: 20.h),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _buildActionButton(
+                                        icon: Icons.arrow_outward,
+                                        label: 'withdraw'.tr(context),
+                                        onTap: () => showWithdrawalSheet(
+                                            context, context.read<WalletCubit>()),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
-                          Icon(Icons.account_balance_wallet, color: Colors.white70, size: 24.sp),
-                        ],
-                      ),
-                      SizedBox(height: 10.h),
-                      Text(
-                        '2,450.00 ر.س',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 32.sp,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 20.h),
-                      Row(
-                        children: [
-                          
-                          SizedBox(width: 15.w),
-                          Expanded(
-                            child: _buildActionButton(
-                              icon: Icons.arrow_outward,
-                              label: 'سحب',
-                              onTap: () => showWithdrawalSheet(context),
-                            ),
+
+                          SizedBox(height: 25.h),
+
+                          // Transactions Title
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'transaction_history'.tr(context),
+                                style: TextStyle(
+                                  fontSize: 18.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: ColorsManager.textPrimaryColor,
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  // Navigate to history if needed
+                                },
+                                child: Text('view_all'.tr(context)),
+                              ),
+                            ],
                           ),
+
+                          SizedBox(height: 10.h),
+
+                          // Transactions List
+                          if (recentWithdrawals.isEmpty)
+                            Padding(
+                              padding: EdgeInsets.only(top: 50.h),
+                              child: Text('no_transactions'.tr(context)),
+                            )
+                          else
+                            ...recentWithdrawals.map((withdrawal) =>
+                                _buildTransactionItem(context, withdrawal)),
                         ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
-                
-                SizedBox(height: 25.h),
-                
-                // Transactions Title
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'سجل المعاملات',
-                      style: TextStyle(
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.bold,
-                        color: ColorsManager.textPrimaryColor,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {},
-                      child: Text('عرض الكل'),
-                    ),
-                  ],
-                ),
-                
-                SizedBox(height: 10.h),
-                
-                // Transactions List
-                _buildTransactionItem(
-                  title: 'إيداع بنكي',
-                  date: '12 قبراير 2024 - 10:30 ص',
-                  amount: '+ 500.00',
-                  isPositive: true,
-                ),
-                _buildTransactionItem(
-                  title: 'جلسة تحفيظ - بحر زكريا',
-                  date: '10 قبراير 2024 - 04:15 م',
-                  amount: '+ 50.00',
-                  isPositive: true,
-                ),
-                _buildTransactionItem(
-                  title: 'سحب رصيد',
-                  date: '05 قبراير 2024 - 09:00 ص',
-                  amount: '- 1,200.00',
-                  isPositive: false,
-                ),
-                _buildTransactionItem(
-                  title: 'جلسة تصحيح تلاوة',
-                  date: '01 قبراير 2024 - 06:30 م',
-                  amount: '+ 45.00',
-                  isPositive: true,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
+                ],
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        },
+      ),
+    ) );
   }
 
   Widget _buildActionButton({
@@ -148,9 +245,9 @@ class WalletScreen extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 10.h),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(10.r),
-          border: Border.all(color: Colors.white.withOpacity(0.3)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -171,12 +268,14 @@ class WalletScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTransactionItem({
-    required String title,
-    required String date,
-    required String amount,
-    required bool isPositive,
-  }) {
+  Widget _buildTransactionItem(
+    BuildContext context,
+    WithdrawalRequest withdrawal,
+  ) {
+    final bool isPending =
+        (withdrawal.status?.toLowerCase().contains('pending') ?? false) ||
+            (withdrawal.status?.contains('قيد الانتظار') ?? false);
+
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
       padding: EdgeInsets.all(15.w),
@@ -185,62 +284,108 @@ class WalletScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(12.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 5,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Row(
+      child: Column(
         children: [
-          Container(
-            padding: EdgeInsets.all(10.w),
-            decoration: BoxDecoration(
-              color: isPositive 
-                  ? Colors.green.withOpacity(0.1) 
-                  : Colors.red.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              isPositive ? Icons.arrow_downward : Icons.arrow_upward,
-              color: isPositive ? Colors.green : Colors.red,
-              size: 20.sp,
-            ),
-          ),
-          SizedBox(width: 15.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14.sp,
-                    color: ColorsManager.textPrimaryColor,
-                  ),
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(10.w),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
                 ),
-                SizedBox(height: 4.h),
-                Text(
-                  date,
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 11.sp,
-                  ),
+                child: Icon(
+                  Icons.arrow_upward,
+                  color: Colors.red,
+                  size: 20.sp,
+                ),
+              ),
+              SizedBox(width: 15.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'balance_withdrawal'.tr(context),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14.sp,
+                        color: ColorsManager.textPrimaryColor,
+                      ),
+                    ),
+                    SizedBox(height: 4.h),
+                    Text(
+                      withdrawal.createdAt ?? '',
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 11.sp,
+                      ),
+                    ),
+                    if (withdrawal.status != null)
+                      Text(
+                        withdrawal.status!,
+                        style: TextStyle(
+                          color: isPending
+                              ? Colors.orange
+                              : ColorsManager.primaryColor,
+                          fontSize: 11.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              Text(
+                '- ${withdrawal.amount} ${withdrawal.currency ?? ''}',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15.sp,
+                  color: Colors.red,
+                ),
+              ),
+            ],
+          ),
+          if (isPending) ...[
+            const Divider(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                BlocBuilder<WalletCubit, WalletState>(
+                  builder: (context, state) {
+                    bool isCancelling = state is CancelRequestLoading &&
+                        state.requestId == withdrawal.id;
+                    return TextButton.icon(
+                      onPressed: isCancelling
+                          ? null
+                          : () => context
+                              .read<WalletCubit>()
+                              .cancelWithdrawalRequest(withdrawal.id!),
+                      icon: isCancelling
+                          ? SizedBox(
+                              width: 12.w,
+                              height: 12.h,
+                              child: const CircularProgressIndicator(
+                                  strokeWidth: 2))
+                          : Icon(Icons.close, color: Colors.red, size: 16.sp),
+                      label: Text(
+                        'cancel_request'.tr(context),
+                        style: TextStyle(color: Colors.red, fontSize: 12.sp),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
-          ),
-          Text(
-            amount,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 15.sp,
-              color: isPositive ? Colors.green : Colors.red,
-            ),
-          ),
+          ],
         ],
       ),
     );
   }
 }
+

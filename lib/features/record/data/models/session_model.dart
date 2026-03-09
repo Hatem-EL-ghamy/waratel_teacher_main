@@ -2,6 +2,7 @@ class SessionModel {
   final String studentName;
   final String date;
   final String time;
+  final String duration;
   final String trackName;
   final String status;
   final String notes;
@@ -13,6 +14,7 @@ class SessionModel {
     required this.studentName,
     required this.date,
     required this.time,
+    required this.duration,
     required this.trackName,
     required this.status,
     required this.notes,
@@ -26,6 +28,7 @@ class SessionModel {
       'studentName': studentName,
       'date': date,
       'time': time,
+      'duration': duration,
       'trackName': trackName,
       'status': status,
       'notes': notes,
@@ -40,12 +43,13 @@ class SessionModel {
       studentName: json['studentName']?.toString() ?? 'Unknown',
       date: json['date']?.toString() ?? '',
       time: json['time']?.toString() ?? '',
+      duration: json['duration']?.toString() ?? '00:00',
       trackName: json['trackName']?.toString() ?? '',
       status: json['status']?.toString() ?? '',
       notes: json['notes']?.toString() ?? '',
       nextAssignment: json['nextAssignment']?.toString() ?? '',
       rating: json['rating']?.toString() ?? '',
-      isPresent: json['isPresent'] == true, // Handles null and false
+      isPresent: json['isPresent'] == true,
     );
   }
 }

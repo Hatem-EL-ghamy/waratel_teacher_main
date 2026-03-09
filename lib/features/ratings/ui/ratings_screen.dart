@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import '../logic/cubit/ratings_cubit.dart';
-import '../logic/cubit/ratings_state.dart';
-import '../../../../core/theming/colors.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/di/dependency_injection.dart';
-import '../../../../core/widgets/custom_app_header.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../data/models/session_model.dart';
-import 'maqraa_room_screen.dart';
+import 'package:waratel_app/core/di/dependency_injection.dart';
+import 'package:waratel_app/core/theming/colors.dart';
+import 'package:waratel_app/core/widgets/custom_app_header.dart';
+import 'package:waratel_app/features/localization/data/app_localizations.dart';
+import 'package:waratel_app/features/ratings/data/models/session_model.dart';
+import 'package:waratel_app/features/ratings/logic/cubit/ratings_cubit.dart';
+import 'package:waratel_app/features/ratings/logic/cubit/ratings_state.dart';
+import 'package:waratel_app/features/ratings/ui/maqraa_room_screen.dart';
 
 class RatingsScreen extends StatefulWidget {
   const RatingsScreen({super.key});
@@ -53,13 +54,23 @@ class _RatingsScreenState extends State<RatingsScreen> {
         builder: (context, state) {
           return Column(
             children: [
-              const CustomAppHeader(title: 'المقرأة'),
+              CustomAppHeader(title: 'maqraa_title'.tr(context)),
               Expanded(
-                child: Container(
-                  width: double.infinity,
-                  color: ColorsManager.backgroundColor,
-                  padding: EdgeInsets.all(16.w),
-                  child: _buildBody(context, state),
+                child: RefreshIndicator(
+                  onRefresh: () async => context.read<RatingsCubit>().checkStatus(),
+                  color: ColorsManager.primaryColor,
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Container(
+                      width: double.infinity,
+                      constraints: BoxConstraints(
+                        minHeight: MediaQuery.of(context).size.height * 0.7,
+                      ),
+                      color: ColorsManager.backgroundColor,
+                      padding: EdgeInsets.all(16.w),
+                      child: _buildBody(context, state),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -74,7 +85,7 @@ class _RatingsScreenState extends State<RatingsScreen> {
       return const Center(child: CircularProgressIndicator());
     } else if (state is RatingsLoaded) {
       if (state.sessions.isEmpty) {
-        return _buildEmptySessions();
+        return _buildEmptySessions(context);
       }
       return _buildSessionsList(context, state.sessions);
     } else if (state is RatingsError) {
@@ -85,7 +96,7 @@ class _RatingsScreenState extends State<RatingsScreen> {
           SizedBox(height: 20.h),
           ElevatedButton(
             onPressed: () => context.read<RatingsCubit>().checkStatus(),
-            child: const Text('إعادة المحاولة'),
+            child: Text('retry'.tr(context)),
           ),
         ],
       );
@@ -93,7 +104,7 @@ class _RatingsScreenState extends State<RatingsScreen> {
     return const SizedBox.shrink();
   }
 
-  Widget _buildEmptySessions() {
+  Widget _buildEmptySessions(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -101,7 +112,7 @@ class _RatingsScreenState extends State<RatingsScreen> {
           Icon(Icons.event_busy, size: 80.sp, color: Colors.grey),
           SizedBox(height: 20.h),
           Text(
-            'لا توجد جلسات مجدولة حالياً',
+            'no_scheduled_sessions_now'.tr(context),
             style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
           ),
         ],
@@ -111,6 +122,8 @@ class _RatingsScreenState extends State<RatingsScreen> {
 
   Widget _buildSessionsList(BuildContext context, List<SessionItem> sessions) {
     return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: sessions.length,
       separatorBuilder: (context, index) => SizedBox(height: 15.h),
       itemBuilder: (context, index) {
@@ -130,7 +143,7 @@ class _RatingsScreenState extends State<RatingsScreen> {
         borderRadius: BorderRadius.circular(15.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -148,7 +161,7 @@ class _RatingsScreenState extends State<RatingsScreen> {
                   style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: ColorsManager.primaryColor),
                 ),
               ),
-              _statusChip(session.status),
+              _statusChip(context, session.status),
             ],
           ),
           SizedBox(height: 8.h),
@@ -157,7 +170,7 @@ class _RatingsScreenState extends State<RatingsScreen> {
               Icon(Icons.access_time, size: 16.sp, color: Colors.grey),
               SizedBox(width: 5.w),
               Text(
-                '${session.startTime.hour}:${session.startTime.minute.toString().padLeft(2, "0")} - ${session.durationMinutes} دقيقة',
+                '${session.startTime.hour}:${session.startTime.minute.toString().padLeft(2, "0")} - ${session.durationMinutes} ${'minutes_label'.tr(context)}',
                 style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
               ),
             ],
@@ -171,7 +184,7 @@ class _RatingsScreenState extends State<RatingsScreen> {
                   Icon(Icons.people, size: 16.sp, color: Colors.grey),
                   SizedBox(width: 5.w),
                   Text(
-                    'السعة: ${session.maxParticipants} طلاب',
+                    '${'capacity'.tr(context)} ${session.maxParticipants} ${'students_count'.tr(context)}',
                     style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
                   ),
                 ],
@@ -183,7 +196,7 @@ class _RatingsScreenState extends State<RatingsScreen> {
                     backgroundColor: ColorsManager.primaryColor,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
                   ),
-                  child: const Text('بدء الحصة', style: TextStyle(color: Colors.white)),
+                  child: Text('start_session'.tr(context), style: const TextStyle(color: Colors.white)),
                 ),
             ],
           ),
@@ -192,22 +205,22 @@ class _RatingsScreenState extends State<RatingsScreen> {
     );
   }
 
-  Widget _statusChip(String status) {
+  Widget _statusChip(BuildContext context, String status) {
     Color color;
     String label;
     
     switch (status) {
       case 'ongoing':
         color = Colors.green;
-        label = 'جارية الآن';
+        label = 'ongoing_now'.tr(context);
         break;
       case 'scheduled':
         color = Colors.blue;
-        label = 'مجدولة';
+        label = 'scheduled'.tr(context);
         break;
       case 'ended':
         color = Colors.grey;
-        label = 'منتهية';
+        label = 'ended'.tr(context);
         break;
       default:
         color = Colors.orange;
@@ -217,7 +230,7 @@ class _RatingsScreenState extends State<RatingsScreen> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(color: color),
       ),

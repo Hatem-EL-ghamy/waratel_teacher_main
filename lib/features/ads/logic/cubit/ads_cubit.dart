@@ -10,7 +10,8 @@ class AdsCubit extends Cubit<AdsState> {
   Future<void> getAds() async {
     emit(AdsLoading());
     try {
-      final response = await adsRepo.getAds();
+      // Add a safety timeout of 10 seconds for initial load
+      final response = await adsRepo.getAds().timeout(const Duration(seconds: 10));
 
       if (response.status) {
         emit(AdsLoaded(response.data.data));

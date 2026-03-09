@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:waratel_app/core/networking/api_constants.dart';
  import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 
@@ -26,9 +27,13 @@ class AgoraService {
 
     await _engine!.initialize(const RtcEngineContext(
       appId: ApiConstants.agoraAppId,
-      channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
-      audioScenario: AudioScenarioType.audioScenarioGameStreaming,
+      // audioScenarioMeeting مناسب للأجهزة الحقيقية
+      // audioScenarioGameStreaming كان يسبب مشاكل على الأجهزة الحقيقية
+      channelProfile: ChannelProfileType.channelProfileCommunication,
+      audioScenario: AudioScenarioType.audioScenarioMeeting,
     ));
+
+    debugPrint('🔵 [AGORA] تم تهيئة المحرك بنجاح');
 
     // ضبط الدور كمذيع لليتمكن من الإرسال
     await _engine!.setClientRole(role: ClientRoleType.clientRoleBroadcaster);
@@ -46,19 +51,30 @@ class AgoraService {
       ),
     );
 
+
     // تسجيل الأحداث
     _engine!.registerEventHandler(
       RtcEngineEventHandler(
         onJoinChannelSuccess: (connection, elapsed) {
-          // تم الانضمام بنجاح
+          debugPrint('✅ [AGORA] Joined channel successfully');
         },
         onUserJoined: (connection, uid, elapsed) {
+          debugPrint('👥 [AGORA] Remote user joined: $uid');
           onUserJoined?.call(uid);
         },
         onUserOffline: (connection, uid, reason) {
+          debugPrint('👥 [AGORA] Remote user left: $uid | Reason: $reason');
           onUserLeft?.call(uid);
         },
+        onRemoteVideoStateChanged: (connection, remoteUid, state, reason, elapsed) {
+          debugPrint('📹 [AGORA] Remote video state changed for $remoteUid: $state');
+          if (state == RemoteVideoState.remoteVideoStateStarting || 
+              state == RemoteVideoState.remoteVideoStateDecoding) {
+            onUserJoined?.call(remoteUid);
+          }
+        },
         onError: (err, msg) {
+          debugPrint('❌ [AGORA ERROR] $err: $msg');
           onError?.call(msg);
         },
       ),
@@ -67,7 +83,7 @@ class AgoraService {
     _isInitialized = true;
   }
 
-  /// الانضمام لقناة
+  /// الانضمام لقناة — الكاميرا مُغلقة بالافتراضي ويمكن تفعيلها أثناء المكالمة
   Future<void> joinChannel({
     required String token,
     required String channelName,
@@ -80,12 +96,14 @@ class AgoraService {
       uid: uid,
       options: const ChannelMediaOptions(
         clientRoleType: ClientRoleType.clientRoleBroadcaster,
-        publishCameraTrack: true,
+        publishCameraTrack: false,   // ← الكاميرا مُغلقة عند بدء المكالمة
         publishMicrophoneTrack: true,
         autoSubscribeAudio: true,
         autoSubscribeVideo: true,
       ),
     );
+    // تأكيد إيقاف الفيديو المحلي عند بدء المكالمة
+    await _engine!.enableLocalVideo(false);
   }
 
   /// الانضمام لقناة صوت فقط (للمقرأة الصوتية)
@@ -128,6 +146,16 @@ class AgoraService {
       await _engine!.enableLocalVideo(true);
     } else {
       await _engine!.enableLocalVideo(false);
+    }
+  }
+
+  /// تبديل سماعة الهاتف (Speaker vs Earpiece)
+  Future<void> setEnableSpeakerphone(bool enable) async {
+    if (!_isInitialized || _engine == null) return;
+    try {
+      await _engine!.setEnableSpeakerphone(enable);
+    } catch (e) {
+      // Ignore if engine is not in a state that supports this call
     }
   }
 

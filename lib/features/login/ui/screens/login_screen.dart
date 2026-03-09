@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../core/theming/colors.dart';
-import '../../../../core/theming/styles.dart';
-import '../../../../core/routing/routers.dart';
-import '../../../../core/helpers/assets.dart';
-import '../../logic/cubit/login_cubit.dart';
-import '../../logic/cubit/login_state.dart';
-import '../../../../core/di/dependency_injection.dart';
+import 'package:waratel_app/core/theming/colors.dart';
+import 'package:waratel_app/core/theming/styles.dart';
+import 'package:waratel_app/core/routing/routers.dart';
+import 'package:waratel_app/core/helpers/assets.dart';
+import 'package:waratel_app/features/login/logic/cubit/login_cubit.dart';
+import 'package:waratel_app/features/login/logic/cubit/login_state.dart';
+import 'package:waratel_app/core/di/dependency_injection.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -35,7 +35,7 @@ class LoginScreen extends StatelessWidget {
         builder: (context, state) {
           final cubit = context.read<LoginCubit>();
           return Scaffold(
-            backgroundColor: AppColors.backgroundColor,
+            backgroundColor: ColorsManager.backgroundColor,
             body: SafeArea(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
@@ -55,12 +55,12 @@ class LoginScreen extends StatelessWidget {
                               color: Colors.white,
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: AppColors.primaryColor,
+                                color: ColorsManager.primaryColor,
                                 width: 2,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
+                                  color: ColorsManager.primaryColor.withValues(alpha: 0.1),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
@@ -82,7 +82,7 @@ class LoginScreen extends StatelessWidget {
                           'قم بتسجيل الدخول',
                           textAlign: TextAlign.center,
                           style: TextStyles.font16RegularTextPrimary.copyWith(
-                            color: AppColors.textSecondaryColor,
+                            color: ColorsManager.textSecondaryColor,
                           ),
                         ),
 
@@ -140,7 +140,7 @@ class LoginScreen extends StatelessWidget {
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primaryColor,
+                            backgroundColor: ColorsManager.primaryColor,
                             padding: EdgeInsets.symmetric(vertical: 16.h),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12.r),
@@ -191,7 +191,7 @@ class LoginScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(12.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -215,14 +215,14 @@ class LoginScreen extends StatelessWidget {
           hintStyle: TextStyles.font14RegularTextSecondary,
           prefixIcon: Icon(
             icon,
-            color: AppColors.secondaryColor,
+            color: ColorsManager.secondaryColor,
             size: 22.sp,
           ),
           suffixIcon: isPassword
               ? IconButton(
                   icon: Icon(
                     suffixIcon ?? Icons.visibility_off,
-                    color: AppColors.secondaryColor,
+                    color: ColorsManager.secondaryColor,
                     size: 22.sp,
                   ),
                   onPressed: onVisibilityToggle,
@@ -239,7 +239,7 @@ class LoginScreen extends StatelessWidget {
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12.r),
             borderSide: const BorderSide(
-              color: AppColors.primaryColor,
+              color: ColorsManager.primaryColor,
               width: 1.5,
             ),
           ),

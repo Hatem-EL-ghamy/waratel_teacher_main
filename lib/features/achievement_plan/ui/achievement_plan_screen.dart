@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../core/theming/colors.dart';
-import '../logic/cubit/achievement_plan_cubit.dart';
-import '../logic/cubit/achievement_plan_state.dart';
-import '../../../../core/di/dependency_injection.dart';
+import 'package:waratel_app/core/theming/colors.dart';
+import 'package:waratel_app/features/achievement_plan/logic/cubit/achievement_plan_cubit.dart';
+import 'package:waratel_app/features/achievement_plan/logic/cubit/achievement_plan_state.dart';
+import 'package:waratel_app/core/di/dependency_injection.dart';
+import 'package:waratel_app/features/localization/data/app_localizations.dart';
 
 class AchievementPlanScreen extends StatefulWidget {
   const AchievementPlanScreen({super.key});
@@ -53,7 +54,7 @@ class _AchievementPlanScreenState extends State<AchievementPlanScreen> {
             return Scaffold(
               backgroundColor: ColorsManager.backgroundColor,
               appBar: AppBar(
-                title: const Text('خطة الإنجاز'),
+                title: Text('achievement_plan'.tr(context)),
                 backgroundColor: ColorsManager.primaryColor,
                 foregroundColor: Colors.white,
                 centerTitle: true,
@@ -69,7 +70,7 @@ class _AchievementPlanScreenState extends State<AchievementPlanScreen> {
           return Scaffold(
             backgroundColor: ColorsManager.backgroundColor,
             appBar: AppBar(
-              title: const Text('خطة الإنجاز'),
+              title: Text('achievement_plan'.tr(context)),
               backgroundColor: ColorsManager.primaryColor,
               foregroundColor: Colors.white,
               centerTitle: true,
@@ -81,21 +82,21 @@ class _AchievementPlanScreenState extends State<AchievementPlanScreen> {
                 children: [
                   _buildSection(
                     context: context,
-                    title: 'تفضيلات المسار التعليمي',
+                    title: 'learning_path_prefs'.tr(context),
                     items: {
-                      'تلقين': prefs.learningPaths['تلقين'],
-                      'تلاوة': prefs.learningPaths['تلاوة'],
-                      'تسميع': prefs.learningPaths['تسميع'],
-                      'إقراء وإجازة': prefs.learningPaths['إقراء وإجازة'],
+                      'talqin'.tr(context): prefs.learningPaths['talqin'] ?? prefs.learningPaths['تلقين'],
+                      'tilawat'.tr(context): prefs.learningPaths['tilawat'] ?? prefs.learningPaths['تلاوة'],
+                      'tasmie'.tr(context): prefs.learningPaths['tasmie'] ?? prefs.learningPaths['تسميع'],
+                      'iqra_ijaza'.tr(context): prefs.learningPaths['iqra_ijaza'] ?? prefs.learningPaths['إقراء وإجازة'],
                     },
                     onToggle: (key) => cubit.toggleLearningPath(key),
                     onAdjust: (key, delta) => cubit.adjustPercentage('learningPaths', key, delta),
-                    isWide: (key) => key == 'إقراء وإجازة',
+                    isWide: (key) => key == 'iqra_ijaza'.tr(context),
                   ),
                   SizedBox(height: 20.h),
                   _buildSection(
                     context: context,
-                    title: 'تفضيلات الفئة العمرية',
+                    title: 'age_group_prefs'.tr(context),
                     items: {
                       '5-12': prefs.ageGroups['5-12'],
                       '13-59': prefs.ageGroups['13-59'],
@@ -107,18 +108,18 @@ class _AchievementPlanScreenState extends State<AchievementPlanScreen> {
                   SizedBox(height: 20.h),
                   _buildSection(
                     context: context,
-                    title: 'تفضيلات مستويات الطالب',
+                    title: 'student_level_prefs'.tr(context),
                     items: {
-                      'مبتدئ': prefs.studentLevels['مبتدئ'],
-                      'متوسط': prefs.studentLevels['متوسط'],
-                      'متقدم': prefs.studentLevels['متقدم'],
+                      'beginner'.tr(context): prefs.studentLevels['beginner'] ?? prefs.studentLevels['مبتدئ'],
+                      'intermediate'.tr(context): prefs.studentLevels['intermediate'] ?? prefs.studentLevels['متوسط'],
+                      'advanced'.tr(context): prefs.studentLevels['advanced'] ?? prefs.studentLevels['متقدم'],
                     },
                     onToggle: (key) => cubit.toggleStudentLevel(key),
                     onAdjust: (key, delta) => cubit.adjustPercentage('studentLevels', key, delta),
                   ),
                   SizedBox(height: 20.h),
                   Text(
-                    'ساعات الانجاز المتوقعة للاسبوع القادم',
+                    'expected_work_hours'.tr(context),
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
                   ),
                   SizedBox(height: 10.h),
@@ -150,7 +151,7 @@ class _AchievementPlanScreenState extends State<AchievementPlanScreen> {
                         foregroundColor: Colors.white,
                         elevation: 2,
                       ),
-                      child: Text('حفظ تفضيلاتي', style: TextStyle(fontSize: 16.sp)),
+                      child: Text('save_preferences'.tr(context), style: TextStyle(fontSize: 16.sp)),
                     ),
                   ),
                   SizedBox(height: 20.h),

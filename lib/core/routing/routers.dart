@@ -38,4 +38,16 @@ class Routes {
   static const String addAppointment = '/addAppointment';
   /// مسار شاشة المكالمة
   static const String call = '/call';
+  /// مسار شاشة تفاصيل الجلسة
+  static const String sessionDetails = '/sessionDetails';
+  /// مسار شاشة عن ورتل
+  static const String about = '/about';
+  /// مسار شاشة تواصل معنا
+  static const String contactUs = '/contactUs';
+  /// مسار شاشة الإحصائيات
+  static const String statistics = '/statistics';
+  /// مسار شاشة الشروط والأحكام
+  static const String terms = '/terms';
+  /// مسار الموافقة على الشروط (تظهر مرة واحدة)
+  static const String termsAgreement = '/termsAgreement';
 }

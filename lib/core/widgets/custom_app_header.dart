@@ -26,14 +26,14 @@ class CustomAppHeader extends StatelessWidget implements PreferredSizeWidget {
         gradient: LinearGradient(
           colors: [
             ColorsManager.primaryColor,
-            ColorsManager.primaryColor.withOpacity(0.85),
+            ColorsManager.primaryColor.withValues(alpha: 0.85),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: Offset(0, 2),
           )

@@ -49,22 +49,50 @@ class AdsData {
 class Advertisement {
   final int id;
   final String title;
-  final String description;
+  final String subtitle;
+  final String? bgColor;
   final String? imageUrl;
+  final Coupon? coupon;
 
   const Advertisement({
     required this.id,
     required this.title,
-    required this.description,
+    required this.subtitle,
+    this.bgColor,
     this.imageUrl,
+    this.coupon,
   });
 
   factory Advertisement.fromJson(Map<String, dynamic> json) {
     return Advertisement(
       id: json['id'] as int,
       title: json['title']?.toString() ?? '',
-      description: json['description']?.toString() ?? '',
+      subtitle: json['subtitle']?.toString() ?? '',
+      bgColor: json['bg_color'] as String?,
       imageUrl: json['image_url'] as String?,
+      coupon: json['coupon'] != null
+          ? Coupon.fromJson(json['coupon'] as Map<String, dynamic>)
+          : null,
+    );
+  }
+}
+
+class Coupon {
+  final int id;
+  final String code;
+  final int percent;
+
+  const Coupon({
+    required this.id,
+    required this.code,
+    required this.percent,
+  });
+
+  factory Coupon.fromJson(Map<String, dynamic> json) {
+    return Coupon(
+      id: json['id'] as int,
+      code: json['code'] as String,
+      percent: json['percent'] as int,
     );
   }
 }

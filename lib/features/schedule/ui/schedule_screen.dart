@@ -1,15 +1,16 @@
-import 'package:flutter/material.dart';
-import '../logic/cubit/schedule_cubit.dart';
-import '../logic/cubit/schedule_state.dart';
-import '../../schedule/data/models/schedule_models.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/widgets/info_card.dart';
-import 'package:waratel_app/core/theming/colors.dart';
-import '../../../../core/di/dependency_injection.dart';
-import '../../../../core/widgets/custom_app_header.dart';
-import '../../../../core/widgets/empty_state_display.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:waratel_app/core/theming/colors.dart';
+import 'package:waratel_app/core/widgets/info_card.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:waratel_app/core/widgets/empty_state_display.dart';
+import 'package:waratel_app/features/localization/data/app_localizations.dart';
+import 'package:waratel_app/features/schedule/logic/cubit/schedule_state.dart';
+import 'package:waratel_app/features/schedule/logic/cubit/schedule_cubit.dart';
+import 'package:waratel_app/features/schedule/data/models/schedule_models.dart';
+ import 'package:waratel_app/core/di/dependency_injection.dart';
+ import 'package:waratel_app/core/widgets/custom_app_header.dart';
 
 class ScheduleScreen extends StatelessWidget {
   const ScheduleScreen({super.key});
@@ -43,108 +44,98 @@ class ScheduleScreen extends StatelessWidget {
             current is DeleteSlotLoading,
         builder: (context, state) {
           return Column(children: [
-            const CustomAppHeader(title: 'الجدول'),
+            CustomAppHeader(title: 'schedule_title'.tr(context)),
             Expanded(
-              child: Container(
-                width: double.infinity,
-                decoration: const BoxDecoration(color: Colors.white),
-                padding:
-                    EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
-                child: Column(
-                  children: [
-                    // Warning Cards
-                    _buildWarningCard(
-                      icon: Icons.calendar_today,
-                      title: 'إلغاء الجلسة قبل الموعد',
-                      subtitle:
-                          'تقدر تلغي أي جلسة قبل 12 ساعة من موعد الجلسة',
-                      iconBgColor: Colors.amber,
-                    ),
-                    SizedBox(height: 16.h),
-                    _buildWarningCard(
-                      icon: Icons.person,
-                      title: 'عدم حضور الطالب للجلسة',
-                      subtitle:
-                          'سيتم إضافة 30% من الدقائق المحجوزة إلى رصيدك',
-                      iconBgColor: Colors.amber,
-                    ),
-
-                    SizedBox(height: 20.h),
-
-                    // State handling
-                    if (state is ScheduleLoading || state is DeleteSlotLoading)
-                      const Expanded(
-                          child: Center(child: CircularProgressIndicator()))
-                    else if (state is ScheduleLoaded &&
-                        state.calendar.isNotEmpty)
-                      Expanded(
-                        child: _buildCalendarList(context, state),
-                      )
-                    else if (state is ScheduleError)
-                      Expanded(
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.error_outline,
-                                  size: 48.sp, color: Colors.red),
-                              SizedBox(height: 10.h),
-                              Text(state.error,
-                                  style: TextStyle(fontSize: 14.sp)),
-                              SizedBox(height: 10.h),
-                              ElevatedButton(
-                                onPressed: () => context
-                                    .read<ScheduleCubit>()
-                                    .loadSchedule(),
-                                child: const Text('إعادة المحاولة'),
+              child: RefreshIndicator(
+                onRefresh: () async => context.read<ScheduleCubit>().loadSchedule(),
+                color: ColorsManager.primaryColor,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Container(
+                    width: double.infinity,
+                    decoration: const BoxDecoration(color: Colors.white),
+                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
+                    child: Column(
+                      children: [
+                        // Warning Cards
+                        _buildWarningCard(
+                          context: context,
+                          icon: Icons.calendar_today,
+                          title: 'cancel_before_title'.tr(context),
+                          subtitle: 'cancel_before_subtitle'.tr(context),
+                          iconBgColor: Colors.amber,
+                        ),
+                        SizedBox(height: 16.h),
+                        _buildWarningCard(
+                          context: context,
+                          icon: Icons.person,
+                          title: 'no_show_title'.tr(context),
+                          subtitle: 'no_show_subtitle'.tr(context),
+                          iconBgColor: Colors.amber,
+                        ),
+                        SizedBox(height: 20.h),
+                        // State handling
+                        if (state is ScheduleLoading || state is DeleteSlotLoading)
+                          SizedBox(
+                            height: 200.h,
+                            child: const Center(child: CircularProgressIndicator()),
+                          )
+                        else if (state is ScheduleLoaded && state.calendar.isNotEmpty)
+                          _buildCalendarList(context, state)
+                        else if (state is ScheduleError)
+                          Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.error_outline, size: 48.sp, color: Colors.red),
+                                SizedBox(height: 10.h),
+                                Text(state.error, style: TextStyle(fontSize: 14.sp)),
+                                SizedBox(height: 10.h),
+                                ElevatedButton(
+                                  onPressed: () => context.read<ScheduleCubit>().loadSchedule(),
+                                  child: Text('retry'.tr(context)),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          EmptyStateDisplay(
+                            icon: Icons.calendar_month_outlined,
+                            message: 'no_scheduled_appointments'.tr(context),
+                            subMessage: 'regular_students_benefit'.tr(context),
+                          ),
+                        if (state is! ScheduleLoading && state is! DeleteSlotLoading) ...[
+                          SizedBox(height: 10.h),
+                          // Add Button
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50.h,
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                final result = await Navigator.pushNamed(context, '/addAppointment');
+                                if (result == true && context.mounted) {
+                                  context.read<ScheduleCubit>().loadSchedule();
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: ColorsManager.primaryColor,
+                                side: BorderSide(
+                                    color: ColorsManager.primaryColor.withValues(alpha: 0.1)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.r)),
+                                elevation: 0,
                               ),
-                            ],
+                              child: Text(
+                                'add_appointments_now'.tr(context),
+                                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                              ),
+                            ),
                           ),
-                        ),
-                      )
-                    else
-                      const EmptyStateDisplay(
-                        icon: Icons.calendar_month_outlined,
-                        message: 'لا توجد مواعيد مجدولة حتى الآن',
-                        subMessage:
-                            'الطلاب المنتظمون في الدراسة معك سيتمكنون من حجز عدد أكبر من الحصص',
-                      ),
-
-                    if (state is! ScheduleLoading &&
-                        state is! DeleteSlotLoading) ...[
-                      SizedBox(height: 10.h),
-                      // Add Button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50.h,
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            final result = await Navigator.pushNamed(
-                                context, '/addAppointment');
-                            if (result == true && context.mounted) {
-                              context.read<ScheduleCubit>().loadSchedule();
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: ColorsManager.primaryColor,
-                            side: const BorderSide(
-                                color: ColorsManager.primaryColor),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(25.r)),
-                            elevation: 0,
-                          ),
-                          child: Text(
-                            'إضافة مواعيد الآن',
-                            style: TextStyle(
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 10.h),
-                    ]
-                  ],
+                          SizedBox(height: 10.h),
+                        ]
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -158,6 +149,8 @@ class ScheduleScreen extends StatelessWidget {
     final sortedDates = state.calendar.keys.toList()..sort();
 
     return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: sortedDates.length,
       itemBuilder: (context, index) {
         final date = sortedDates[index];
@@ -173,7 +166,9 @@ class ScheduleScreen extends StatelessWidget {
     String formattedDate;
     try {
       final parsedDate = DateTime.parse(date);
-      formattedDate = DateFormat('EEEE، d MMMM yyyy', 'ar').format(parsedDate);
+      formattedDate = DateFormat(
+              'EEEE، d MMMM yyyy', Localizations.localeOf(context).languageCode)
+          .format(parsedDate);
     } catch (_) {
       formattedDate = date;
     }
@@ -186,7 +181,7 @@ class ScheduleScreen extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -199,7 +194,7 @@ class ScheduleScreen extends StatelessWidget {
             width: double.infinity,
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
             decoration: BoxDecoration(
-              color: ColorsManager.primaryColor.withOpacity(0.1),
+              color: ColorsManager.primaryColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(12.r),
                 topRight: Radius.circular(12.r),
@@ -223,7 +218,7 @@ class ScheduleScreen extends StatelessWidget {
                     padding:
                         EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                     decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.1),
+                      color: Colors.red.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8.r),
                     ),
                     child: Row(
@@ -233,7 +228,7 @@ class ScheduleScreen extends StatelessWidget {
                             size: 16.sp, color: Colors.red),
                         SizedBox(width: 4.w),
                         Text(
-                          'حذف الكل',
+                          'delete_all'.tr(context),
                           style: TextStyle(
                             fontSize: 11.sp,
                             color: Colors.red,
@@ -255,8 +250,8 @@ class ScheduleScreen extends StatelessWidget {
   }
 
   Widget _buildSlotTile(BuildContext context, SlotModel slot) {
-    final startTime = _formatTime(slot.startTime);
-    final endTime = _formatTime(slot.endTime);
+    final startTime = _formatTime(context, slot.startTime);
+    final endTime = _formatTime(context, slot.endTime);
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
@@ -282,11 +277,11 @@ class ScheduleScreen extends StatelessWidget {
             Container(
               padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.1),
+                color: Colors.orange.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8.r),
               ),
               child: Text(
-                'محجوز',
+                'booked'.tr(context),
                 style: TextStyle(
                   fontSize: 11.sp,
                   color: Colors.orange,
@@ -308,12 +303,12 @@ class ScheduleScreen extends StatelessWidget {
     );
   }
 
-  String _formatTime(String time) {
+  String _formatTime(BuildContext context, String time) {
     try {
       final parts = time.split(':');
       final hour = int.parse(parts[0]);
       final minute = parts[1];
-      final period = hour >= 12 ? 'م' : 'ص';
+      final period = hour >= 12 ? 'pm'.tr(context) : 'am'.tr(context);
       final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
       return '$displayHour:$minute $period';
     } catch (_) {
@@ -325,20 +320,21 @@ class ScheduleScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('حذف الموعد'),
+        title: Text('delete_appointment_title'.tr(context)),
         content: Text(
-            'هل أنت متأكد من حذف الموعد ${_formatTime(slot.startTime)} - ${_formatTime(slot.endTime)}؟'),
+            '${'delete_appointment_confirm'.tr(context)} (${_formatTime(context, slot.startTime)} - ${_formatTime(context, slot.endTime)})'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('إلغاء'),
+            child: Text('cancel'.tr(context)),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(dialogContext);
               context.read<ScheduleCubit>().deleteSlot(slot.id);
             },
-            child: const Text('حذف', style: TextStyle(color: Colors.red)),
+            child: Text('delete'.tr(context),
+                style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -349,20 +345,20 @@ class ScheduleScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('حذف جميع المواعيد'),
-        content: const Text('هل أنت متأكد من حذف جميع مواعيد هذا اليوم؟'),
+        title: Text('delete_all_appointments_title'.tr(context)),
+        content: Text('delete_all_appointments_confirm'.tr(context)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('إلغاء'),
+            child: Text('cancel'.tr(context)),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(dialogContext);
               context.read<ScheduleCubit>().deleteSlotsByDay(date);
             },
-            child: const Text('حذف الكل',
-                style: TextStyle(color: Colors.red)),
+            child: Text('delete_all'.tr(context),
+                style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -370,7 +366,8 @@ class ScheduleScreen extends StatelessWidget {
   }
 
   Widget _buildWarningCard(
-      {required IconData icon,
+      {required BuildContext context,
+      required IconData icon,
       required String title,
       required String subtitle,
       required Color iconBgColor}) {

@@ -91,103 +91,104 @@ class _AdsSliderState extends State<AdsSlider> {
   }
 
   Widget _buildAdItem(Advertisement ad, int index) {
-    // Determine colors based on index for variety
-    final List<Color> gradientColors = [
-      [ColorsManager.primaryColor, ColorsManager.primaryColor.withOpacity(0.8)],
-      [ColorsManager.accentColor, ColorsManager.accentColor.withOpacity(0.8)],
-      [const Color(0xFFF4A261), const Color(0xFFE76F51)], // Orange gradient
-    ][index % 3];
+    // Parse hex color from API or use fallback
+    Color backgroundColor = ColorsManager.primaryColor;
+    if (ad.bgColor != null && ad.bgColor!.isNotEmpty) {
+      try {
+        final hexColor = ad.bgColor!.replaceAll('#', '');
+        backgroundColor = Color(int.parse('FF$hexColor', radix: 16));
+      } catch (_) {
+        // Fallback to primary
+      }
+    }
 
-    final IconData icon = [
-      Icons.calendar_today_rounded,
-      Icons.new_releases_rounded,
-      Icons.feedback_rounded,
-    ][index % 3];
-
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 5.w),
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: gradientColors,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return GestureDetector(
+      onTap: () => AdDetailDialog.show(context, ad),
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 5.w),
+        padding: EdgeInsets.all(16.w),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(16.r),
+          boxShadow: [
+            BoxShadow(
+              color: backgroundColor.withValues(alpha: 0.3),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-        borderRadius: BorderRadius.circular(16.r),
-        boxShadow: [
-          BoxShadow(
-            color: gradientColors[0].withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 3,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  ad.title,
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: 8.h),
-                Text(
-                  ad.description,
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    color: Colors.white.withOpacity(0.9),
-                    fontWeight: FontWeight.w500,
-                    height: 1.4,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: 12.h),
-                GestureDetector(
-                  onTap: () => AdDetailDialog.show(context, ad),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(20.r),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 3,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    ad.title,
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
                     ),
-                    child: Text(
-                      'المزيد',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12.sp,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 8.h),
+                  Text(
+                    ad.subtitle,
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      color: Colors.white.withValues(alpha: 0.9),
+                      fontWeight: FontWeight.w500,
+                      height: 1.4,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (ad.coupon != null) ...[
+                    SizedBox(height: 8.h),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      child: Text(
+                        'كوبون: ${ad.coupon!.code} (${ad.coupon!.percent}%)',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
+                  ],
+                ],
+              ),
+            ),
+            if (ad.imageUrl != null) ...[
+              SizedBox(width: 12.w),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12.r),
+                child: Image.network(
+                  ad.imageUrl!,
+                  width: 80.w,
+                  height: 80.w,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    width: 80.w,
+                    height: 80.w,
+                    color: Colors.white.withValues(alpha: 0.2),
+                    child: const Icon(Icons.image_not_supported, color: Colors.white),
                   ),
-                )
-              ],
-            ),
-          ),
-          SizedBox(width: 12.w),
-          Container(
-            padding: EdgeInsets.all(12.w),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              icon,
-              size: 32.sp,
-              color: Colors.white,
-            ),
-          ),
-        ],
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

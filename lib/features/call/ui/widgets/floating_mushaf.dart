@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../core/theming/colors.dart';
+import 'package:waratel_app/core/theming/colors.dart';
+import 'package:waratel_app/features/localization/data/app_localizations.dart';
 
 class FloatingMushaf extends StatefulWidget {
   final VoidCallback onClose;
@@ -41,7 +42,7 @@ class _FloatingMushafState extends State<FloatingMushaf> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'المصحف الشريف',
+                      'holy_quran_title'.tr(context),
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -64,7 +65,7 @@ class _FloatingMushafState extends State<FloatingMushaf> {
                       Icon(Icons.menu_book, size: 50.sp, color: ColorsManager.greenLight),
                       SizedBox(height: 10.h),
                       Text(
-                        'صفحة المصحف تظهر هنا',
+                        'quran_page_placeholder'.tr(context),
                         style: TextStyle(color: Colors.grey, fontSize: 14.sp),
                       )
                     ],

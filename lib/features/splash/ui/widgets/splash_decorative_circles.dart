@@ -20,8 +20,8 @@ class SplashDecorativeCircles extends StatelessWidget {
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  AppColors.accentColor.withOpacity(0.2),
-                  AppColors.accentColor.withOpacity(0.05),
+                  ColorsManager.accentColor.withValues(alpha: 0.2),
+                  ColorsManager.accentColor.withValues(alpha: 0.05),
                   Colors.transparent,
                 ],
               ),
@@ -39,8 +39,8 @@ class SplashDecorativeCircles extends StatelessWidget {
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  AppColors.accentColor.withOpacity(0.1),
-                  AppColors.accentColor.withOpacity(0.02),
+                  ColorsManager.accentColor.withValues(alpha: 0.1),
+                  ColorsManager.accentColor.withValues(alpha: 0.02),
                   Colors.transparent,
                 ],
               ),
@@ -58,7 +58,7 @@ class SplashDecorativeCircles extends StatelessWidget {
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  AppColors.accentColor.withOpacity(0.1),
+                  ColorsManager.accentColor.withValues(alpha: 0.1),
                   Colors.transparent,
                 ],
               ),
