@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:waratel_app/core/theming/colors.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:waratel_app/features/localization/data/app_localizations.dart';
 
 class TermsScreen extends StatelessWidget {
