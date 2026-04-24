@@ -36,7 +36,7 @@ class ScheduleRepo {
       final data = e.response?.data;
       debugPrint('ScheduleRepo.addBatchSlots DioError: $data');
       String errorMsg = 'فشل في إضافة المواعيد. حاول مجدداً';
-      
+
       if (data is Map<String, dynamic>) {
         if (data['errors'] != null && data['errors'] is Map) {
           final errors = data['errors'] as Map;
@@ -78,8 +78,7 @@ class ScheduleRepo {
     } on DioException catch (e) {
       final serverMessage = e.response?.data?['message'];
       debugPrint('ScheduleRepo.deleteSlotsByDay DioError: ${e.response?.data}');
-      throw Exception(
-          serverMessage ?? 'فشل في حذف مواعيد اليوم. حاول مجدداً');
+      throw Exception(serverMessage ?? 'فشل في حذف مواعيد اليوم. حاول مجدداً');
     } catch (e) {
       debugPrint('ScheduleRepo.deleteSlotsByDay Error: $e');
       throw Exception('فشل في حذف مواعيد اليوم: $e');

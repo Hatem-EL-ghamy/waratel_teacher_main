@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:waratel_app/core/theming/colors.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:waratel_app/features/localization/data/app_localizations.dart';
- 
 
 class SessionCard extends StatelessWidget {
   final String studentName;
@@ -54,8 +53,10 @@ class SessionCard extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 20.r,
-                  backgroundColor: ColorsManager.primaryColor.withValues(alpha: 0.1),
-                  child: Icon(Icons.person, color: ColorsManager.primaryColor, size: 20.sp),
+                  backgroundColor:
+                      ColorsManager.primaryColor.withValues(alpha: 0.1),
+                  child: Icon(Icons.person,
+                      color: ColorsManager.primaryColor, size: 20.sp),
                 ),
                 SizedBox(width: 12.w),
                 Expanded(
@@ -81,7 +82,8 @@ class SessionCard extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8.r),
@@ -97,30 +99,68 @@ class SessionCard extends StatelessWidget {
                 ),
               ],
             ),
-            
+
+            // Rating and Notes Preview
+            if (onReportTap != null) ...[
+              SizedBox(height: 8.h),
+              Row(
+                children: [
+                  Row(
+                    children: List.generate(5, (index) {
+                      return Icon(
+                        index < 4
+                            ? Icons.star
+                            : Icons
+                                .star_border, // Static for now, since rating is String 'ممتاز' etc.
+                        color: Colors.amber,
+                        size: 14.sp,
+                      );
+                    }),
+                  ),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    child: Text(
+                      'view_report'.tr(context),
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: Colors.grey[600],
+                        fontStyle: FontStyle.italic,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
             Padding(
               padding: EdgeInsets.symmetric(vertical: 12.h),
               child: Divider(color: Colors.grey.shade100, height: 1),
             ),
 
-            // Time and Center Info
+            // Time and Details Link
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
                   children: [
-                    Icon(Icons.access_time, size: 16.sp, color: Colors.grey[600]),
+                    Icon(Icons.access_time,
+                        size: 16.sp, color: Colors.grey[600]),
                     SizedBox(width: 6.w),
                     Text(
                       time,
-                      style: TextStyle(fontSize: 13.sp, color: Colors.grey[600]),
+                      style:
+                          TextStyle(fontSize: 13.sp, color: Colors.grey[600]),
                     ),
                     SizedBox(width: 12.w),
-                    Icon(Icons.timer_outlined, size: 16.sp, color: Colors.grey[600]),
+                    Icon(Icons.timer_outlined,
+                        size: 16.sp, color: Colors.grey[600]),
                     SizedBox(width: 6.w),
                     Text(
                       duration,
-                      style: TextStyle(fontSize: 13.sp, color: Colors.grey[600]),
+                      style:
+                          TextStyle(fontSize: 13.sp, color: Colors.grey[600]),
                     ),
                   ],
                 ),
@@ -134,7 +174,8 @@ class SessionCard extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Icon(Icons.chevron_right, color: ColorsManager.primaryColor, size: 20.sp),
+                    Icon(Icons.chevron_right,
+                        color: ColorsManager.primaryColor, size: 20.sp),
                   ],
                 ),
               ],

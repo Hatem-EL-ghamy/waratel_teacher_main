@@ -45,7 +45,7 @@ class TransactionItem extends StatelessWidget {
             ),
           ),
           SizedBox(width: 12.w),
-          
+
           // Title and date
           Expanded(
             child: Column(
@@ -70,7 +70,7 @@ class TransactionItem extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // Amount
           Text(
             '${isIncome ? '+' : '-'}\$${amount.toStringAsFixed(2)}',

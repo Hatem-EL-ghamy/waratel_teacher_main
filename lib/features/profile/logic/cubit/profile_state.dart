@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart'; 
+import 'package:flutter/material.dart';
 import 'package:waratel_app/features/profile/data/models/profile_models.dart';
 
 @immutable

@@ -9,6 +9,7 @@ import 'package:waratel_app/features/profile/data/models/profile_models.dart';
 import 'package:waratel_app/features/localization/data/app_localizations.dart';
 import 'package:waratel_app/features/localization/logic/cubit/locale_cubit.dart';
 import 'package:waratel_app/features/localization/logic/cubit/locale_state.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -18,8 +19,15 @@ class ProfileScreen extends StatelessWidget {
     return BlocProvider.value(
       value: getIt<ProfileCubit>(),
       child: DefaultTabController(
-        length: 3,
+        length: 2,
         child: BlocBuilder<ProfileCubit, ProfileState>(
+          buildWhen: (previous, current) =>
+              current is ProfileLoading ||
+              current is ProfileLoaded ||
+              current is ProfileError ||
+              current is LogoutLoading ||
+              current is LogoutSuccess ||
+              current is LogoutError,
           builder: (context, state) {
             if (state is ProfileLoading) {
               return const Scaffold(
@@ -74,7 +82,6 @@ class ProfileScreen extends StatelessWidget {
                       labelStyle: TextStyle(
                           fontSize: 14.sp, fontWeight: FontWeight.bold),
                       tabs: [
-                        Tab(text: 'ratings'.tr(context)),
                         Tab(text: 'information'.tr(context)),
                         Tab(text: 'experience'.tr(context)),
                       ],
@@ -84,7 +91,6 @@ class ProfileScreen extends StatelessWidget {
                   Expanded(
                     child: TabBarView(
                       children: [
-                        _buildRatingsTab(context),
                         _buildInfoTab(context, application, profile?.user),
                         _buildExperienceTab(context, application, profile),
                       ],
@@ -123,8 +129,9 @@ class ProfileScreen extends StatelessWidget {
               radius: 45.r,
               backgroundColor: Colors.white.withValues(alpha: 0.2),
               backgroundImage: profile?.profile?.profilePhotoPath != null
-                  ? NetworkImage(
-                      'https://wartil.com/storage/${profile!.profile!.profilePhotoPath}')
+                  ? CachedNetworkImageProvider(
+                          'https://wartil.com/storage/${profile!.profile!.profilePhotoPath}')
+                      as ImageProvider
                   : null,
               child: profile?.profile?.profilePhotoPath == null
                   ? Icon(Icons.person, size: 55.sp, color: Colors.white)
@@ -160,62 +167,48 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRatingsTab(BuildContext context) {
-    return ListView(
-      padding: EdgeInsets.all(16.w),
-      children: [
-        _buildSectionTitle(context, 'ratings_summary'.tr(context)),
-        SizedBox(height: 15.h),
-        _buildRatingRow(context, 'students_rating'.tr(context), 4.4),
-        SizedBox(height: 12.h),
-        _buildRatingRow(context, 'evaluators_rating'.tr(context), 4.4),
-        SizedBox(height: 12.h),
-        _buildRatingRow(context, 'automated_rating'.tr(context), 0.0),
-        SizedBox(height: 30.h),
-        _buildSectionTitle(context, 'comments_notes'.tr(context)),
-        SizedBox(height: 15.h),
-        _buildCommentCard(
-          name: 'بحر زكريا',
-          comment:
-              'مميز جداً والله، بارك الله في علمه ووقت الشيخ. أسلوب متميز في التحفيظ والتلقين.',
-          date: '15/05/2024 07:06 م',
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInfoTab(BuildContext context, TeacherApplication? app, ProfileUser? user) {
+  Widget _buildInfoTab(
+      BuildContext context, TeacherApplication? app, ProfileUser? user) {
     return ListView(
       padding: EdgeInsets.all(16.w),
       children: [
         _buildSectionTitle(context, 'personal_data'.tr(context)),
         _buildInfoCard([
-          _buildInfoRow(context, 
-              Icons.person_outline, 'full_name'.tr(context), app?.fullName ?? '-'),
-          _buildInfoRow(context, Icons.wc, 'gender'.tr(context),
-              app?.gender == 'male' ? 'male'.tr(context) : (app?.gender == 'female' ? 'female'.tr(context) : (app?.gender ?? '-'))),
-          _buildInfoRow(context, 
-              Icons.email_outlined, 'email'.tr(context), user?.email ?? '-'),
-          _buildInfoRow(context, Icons.phone_android, 'whatsapp_number'.tr(context), app?.phone ?? '-'),
+          _buildInfoRow(context, Icons.person_outline, 'full_name'.tr(context),
+              app?.fullName ?? '-'),
+          _buildInfoRow(
+              context,
+              Icons.wc,
+              'gender'.tr(context),
+              app?.gender == 'male'
+                  ? 'male'.tr(context)
+                  : (app?.gender == 'female'
+                      ? 'female'.tr(context)
+                      : (app?.gender ?? '-'))),
+          _buildInfoRow(context, Icons.email_outlined, 'email'.tr(context),
+              user?.email ?? '-'),
+          _buildInfoRow(context, Icons.phone_android,
+              'whatsapp_number'.tr(context), app?.phone ?? '-'),
         ]),
         SizedBox(height: 20.h),
         _buildSectionTitle(context, 'location_residence'.tr(context)),
         _buildInfoCard([
-          _buildInfoRow(context, Icons.public, 'origin_country'.tr(context), app?.originCountry ?? '-'),
-          _buildInfoRow(context, Icons.location_on_outlined, 'residence_location'.tr(context),
-              app?.residenceLocation ?? '-'),
+          _buildInfoRow(context, Icons.public, 'origin_country'.tr(context),
+              app?.originCountry ?? '-'),
+          _buildInfoRow(context, Icons.location_on_outlined,
+              'residence_location'.tr(context), app?.residenceLocation ?? '-'),
         ]),
         SizedBox(height: 20.h),
         _buildSectionTitle(context, 'educational_background'.tr(context)),
         _buildInfoCard([
-          _buildInfoRow(context, Icons.school_outlined, 'qualification'.tr(context),
-              app?.qualification ?? '-'),
+          _buildInfoRow(context, Icons.school_outlined,
+              'qualification'.tr(context), app?.qualification ?? '-'),
         ]),
         SizedBox(height: 20.h),
         _buildSectionTitle(context, 'languages'.tr(context)),
         _buildInfoCard([
-          _buildInfoRow(context, 
-              Icons.language, 'languages'.tr(context), app?.languages.join('، ') ?? '-'),
+          _buildInfoRow(context, Icons.language, 'languages'.tr(context),
+              app?.languages.join('، ') ?? '-'),
         ]),
       ],
     );
@@ -242,13 +235,22 @@ class ProfileScreen extends StatelessWidget {
         _buildInfoCard([
           _buildInfoRow(context, Icons.history, 'experience_years'.tr(context),
               '${app?.experienceYears ?? 0} ${'experience_years'.tr(context)}'),
-          _buildInfoRow(context, Icons.access_time, 'daily_work_hours'.tr(context),
+          _buildInfoRow(
+              context,
+              Icons.access_time,
+              'daily_work_hours'.tr(context),
               '${app?.workHours ?? 0} ${'minutes'.tr(context)}'),
-          _buildInfoRow(context, Icons.laptop_chromebook, 'online_teaching'.tr(context),
+          _buildInfoRow(
+              context,
+              Icons.laptop_chromebook,
+              'online_teaching'.tr(context),
               _translateLevel(context, app?.onlineExperience)),
           _buildInfoRow(context, Icons.speed, 'internet_quality'.tr(context),
               _translateLevel(context, app?.internetQuality)),
-          _buildInfoRow(context, Icons.settings_suggest, 'tech_skills'.tr(context),
+          _buildInfoRow(
+              context,
+              Icons.settings_suggest,
+              'tech_skills'.tr(context),
               _translateLevel(context, app?.techSkills)),
         ]),
         SizedBox(height: 20.h),
@@ -349,11 +351,18 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(BuildContext context, IconData icon, String label, String value) {
+  Widget _buildInfoRow(
+      BuildContext context, IconData icon, String label, String value) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       child: Row(
-        textDirection: context.read<LocaleCubit>().state is ChangeLocaleState && (context.read<LocaleCubit>().state as ChangeLocaleState).locale.languageCode == 'en' ? TextDirection.ltr : TextDirection.rtl,
+        textDirection: context.read<LocaleCubit>().state is ChangeLocaleState &&
+                (context.read<LocaleCubit>().state as ChangeLocaleState)
+                        .locale
+                        .languageCode ==
+                    'en'
+            ? TextDirection.ltr
+            : TextDirection.rtl,
         children: [
           Icon(icon, color: ColorsManager.primaryColor, size: 22.sp),
           SizedBox(width: 15.w),
@@ -389,75 +398,6 @@ class ProfileScreen extends StatelessWidget {
           fontSize: 12.sp,
           fontWeight: FontWeight.bold,
         ),
-      ),
-    );
-  }
-
-  Widget _buildRatingRow(BuildContext context, String label, double rating) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label,
-            style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500)),
-        Row(
-          children: [
-            Text(rating.toString(),
-                style: TextStyle(color: Colors.grey, fontSize: 14.sp)),
-            SizedBox(width: 10.w),
-            Row(
-              children: List.generate(5, (index) {
-                return Icon(
-                  Icons.star,
-                  color: index < rating.floor()
-                      ? ColorsManager.accentColor
-                      : Colors.grey.shade300,
-                  size: 20.sp,
-                );
-              }),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCommentCard(
-      {required String name, required String comment, required String date}) {
-    return Container(
-      padding: EdgeInsets.all(15.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15.r),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 20.r,
-                backgroundColor: ColorsManager.primaryColor.withValues(alpha: 0.1),
-                child: Icon(Icons.person, color: ColorsManager.primaryColor),
-              ),
-              SizedBox(width: 10.w),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(name,
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 14.sp)),
-                  Text(date,
-                      style: TextStyle(color: Colors.grey, fontSize: 11.sp)),
-                ],
-              ),
-            ],
-          ),
-          SizedBox(height: 12.h),
-          Text(comment, style: TextStyle(fontSize: 13.sp, height: 1.5)),
-        ],
       ),
     );
   }

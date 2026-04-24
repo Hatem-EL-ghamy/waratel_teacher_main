@@ -58,11 +58,13 @@ class QuranCircleCard extends StatelessWidget {
               Row(
                 children: [
                   IconButton(
-                    icon: Icon(Icons.delete_outline, color: Colors.red, size: 20.sp),
+                    icon: Icon(Icons.delete_outline,
+                        color: Colors.red, size: 20.sp),
                     onPressed: () {},
                   ),
                   IconButton(
-                    icon: Icon(Icons.edit_outlined, color: ColorsManager.primaryColor, size: 20.sp),
+                    icon: Icon(Icons.edit_outlined,
+                        color: ColorsManager.primaryColor, size: 20.sp),
                     onPressed: () {},
                   ),
                 ],
@@ -128,7 +130,8 @@ class QuranCircleCard extends StatelessWidget {
                 child: LinearProgressIndicator(
                   value: progress,
                   backgroundColor: Colors.grey[200],
-                  valueColor: AlwaysStoppedAnimation<Color>(ColorsManager.primaryColor),
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(ColorsManager.primaryColor),
                   minHeight: 8.h,
                 ),
               ),
@@ -146,10 +149,12 @@ class QuranCircleCard extends StatelessWidget {
                       height: 32.w,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: ColorsManager.secondaryColor.withValues(alpha: 0.2),
+                        color:
+                            ColorsManager.secondaryColor.withValues(alpha: 0.2),
                         border: Border.all(color: Colors.white, width: 2.w),
                       ),
-                      child: Icon(Icons.person, size: 16.sp, color: ColorsManager.secondaryColor),
+                      child: Icon(Icons.person,
+                          size: 16.sp, color: ColorsManager.secondaryColor),
                     )),
               ],
             ),
@@ -162,12 +167,14 @@ class QuranCircleCard extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: () {},
                   icon: Icon(Icons.access_time, size: 18.sp),
-                  label: Text('أوقات تجمع المقرأة', style: TextStyle(fontSize: 12.sp)),
+                  label: Text('أوقات تجمع المقرأة',
+                      style: TextStyle(fontSize: 12.sp)),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: ColorsManager.textPrimaryColor,
                     side: BorderSide(color: Colors.grey[300]!),
                     padding: EdgeInsets.symmetric(vertical: 12.h),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.r)),
                   ),
                 ),
               ),
@@ -176,12 +183,14 @@ class QuranCircleCard extends StatelessWidget {
                 child: ElevatedButton.icon(
                   onPressed: () {},
                   icon: Icon(Icons.meeting_room, size: 18.sp),
-                  label: Text('دخول لغرفة المعلم', style: TextStyle(fontSize: 12.sp)),
+                  label: Text('دخول لغرفة المعلم',
+                      style: TextStyle(fontSize: 12.sp)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: ColorsManager.primaryColor,
                     foregroundColor: Colors.white,
                     padding: EdgeInsets.symmetric(vertical: 12.h),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.r)),
                   ),
                 ),
               ),

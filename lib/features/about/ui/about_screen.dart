@@ -7,9 +7,10 @@ class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
 
   static const _features = [
-    _FeatureData('around_the_clock',  'around_the_clock_desc',  Icons.access_time_filled),
-    _FeatureData('different_ages',    'different_ages_desc',    Icons.groups),
-    _FeatureData('flexible_plans',    'flexible_plans_desc',    Icons.calendar_month),
+    _FeatureData(
+        'around_the_clock', 'around_the_clock_desc', Icons.access_time_filled),
+    _FeatureData('different_ages', 'different_ages_desc', Icons.groups),
+    _FeatureData('flexible_plans', 'flexible_plans_desc', Icons.calendar_month),
   ];
 
   @override
@@ -23,8 +24,7 @@ class AboutScreen extends StatelessWidget {
             // ── Gradient hero section ────────────────────────────────────
             Container(
               width: double.infinity,
-              padding:
-                  EdgeInsets.symmetric(horizontal: 32.w, vertical: 40.h),
+              padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 40.h),
               decoration: const BoxDecoration(
                 gradient: ColorsManager.headerGradient,
               ),
@@ -36,8 +36,8 @@ class AboutScreen extends StatelessWidget {
                       color: Colors.white.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.menu_book,
-                        color: Colors.white, size: 42.sp),
+                    child:
+                        Icon(Icons.menu_book, color: Colors.white, size: 42.sp),
                   ),
                   SizedBox(height: 16.h),
                   Text(
@@ -129,8 +129,7 @@ class _FeatureItem extends StatelessWidget {
               color: ColorsManager.accentColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon,
-                color: ColorsManager.accentColor, size: 28.sp),
+            child: Icon(icon, color: ColorsManager.accentColor, size: 28.sp),
           ),
           SizedBox(width: 16.w),
           Expanded(

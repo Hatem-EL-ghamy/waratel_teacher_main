@@ -33,15 +33,15 @@ class TeacherProfile {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'user_id': userId,
-    'teacher_application_id': teacherApplicationId,
-    'minutes': minutes,
-    'salary': salary,
-    'profile_photo_path': profilePhotoPath,
-    'created_at': createdAt,
-    'updated_at': updatedAt,
-  };
+        'id': id,
+        'user_id': userId,
+        'teacher_application_id': teacherApplicationId,
+        'minutes': minutes,
+        'salary': salary,
+        'profile_photo_path': profilePhotoPath,
+        'created_at': createdAt,
+        'updated_at': updatedAt,
+      };
 }
 
 class UserModel {

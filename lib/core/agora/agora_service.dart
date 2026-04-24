@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:waratel_app/core/networking/api_constants.dart';
- import 'package:agora_rtc_engine/agora_rtc_engine.dart';
+import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 
 /// خدمة Agora المشتركة للمكالمات وغرف المقرأة
 class AgoraService {
@@ -27,10 +27,8 @@ class AgoraService {
 
     await _engine!.initialize(const RtcEngineContext(
       appId: ApiConstants.agoraAppId,
-      // audioScenarioMeeting مناسب للأجهزة الحقيقية
-      // audioScenarioGameStreaming كان يسبب مشاكل على الأجهزة الحقيقية
       channelProfile: ChannelProfileType.channelProfileCommunication,
-      audioScenario: AudioScenarioType.audioScenarioMeeting,
+      audioScenario: AudioScenarioType.audioScenarioDefault,
     ));
 
     debugPrint('🔵 [AGORA] تم تهيئة المحرك بنجاح');
@@ -42,15 +40,14 @@ class AgoraService {
     await _engine!.enableVideo();
     await _engine!.enableAudio();
 
-    // ضبط إعدادات الفيديو
+    // ضبط إعدادات الفيديو لتحسين الأداء وتقليل التقطيع (Stuttering/Distortion)
     await _engine!.setVideoEncoderConfiguration(
       const VideoEncoderConfiguration(
-        dimensions: VideoDimensions(width: 640, height: 360),
+        dimensions: VideoDimensions(width: 320, height: 240),
         frameRate: 15,
-        bitrate: 600,
+        bitrate: 200,
       ),
     );
-
 
     // تسجيل الأحداث
     _engine!.registerEventHandler(
@@ -66,9 +63,11 @@ class AgoraService {
           debugPrint('👥 [AGORA] Remote user left: $uid | Reason: $reason');
           onUserLeft?.call(uid);
         },
-        onRemoteVideoStateChanged: (connection, remoteUid, state, reason, elapsed) {
-          debugPrint('📹 [AGORA] Remote video state changed for $remoteUid: $state');
-          if (state == RemoteVideoState.remoteVideoStateStarting || 
+        onRemoteVideoStateChanged:
+            (connection, remoteUid, state, reason, elapsed) {
+          debugPrint(
+              '📹 [AGORA] Remote video state changed for $remoteUid: $state');
+          if (state == RemoteVideoState.remoteVideoStateStarting ||
               state == RemoteVideoState.remoteVideoStateDecoding) {
             onUserJoined?.call(remoteUid);
           }
@@ -96,14 +95,12 @@ class AgoraService {
       uid: uid,
       options: const ChannelMediaOptions(
         clientRoleType: ClientRoleType.clientRoleBroadcaster,
-        publishCameraTrack: false,   // ← الكاميرا مُغلقة عند بدء المكالمة
+        publishCameraTrack: true, // ← تم التعديل لضمان عمل الكاميرا عند تفعيلها
         publishMicrophoneTrack: true,
         autoSubscribeAudio: true,
         autoSubscribeVideo: true,
       ),
     );
-    // تأكيد إيقاف الفيديو المحلي عند بدء المكالمة
-    await _engine!.enableLocalVideo(false);
   }
 
   /// الانضمام لقناة صوت فقط (للمقرأة الصوتية)

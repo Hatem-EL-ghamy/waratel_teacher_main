@@ -5,12 +5,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:waratel_app/features/home/logic/cubit/home_cubit.dart';
 import 'package:waratel_app/features/home/logic/cubit/home_state.dart';
 import 'package:waratel_app/features/localization/data/app_localizations.dart';
+
 class RecentCallsList extends StatelessWidget {
   const RecentCallsList({super.key});
 
   @override
   Widget build(BuildContext context) {
-
     return BlocBuilder<HomeCubit, HomeState>(
       buildWhen: (previous, current) => current is HomeRecentCallsUpdated,
       builder: (context, state) {
@@ -40,13 +40,15 @@ class RecentCallsList extends StatelessWidget {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                   Container(
+                  Container(
                     width: 60.w,
                     height: 60.w,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                          color: ColorsManager.secondaryColor.withValues(alpha: 0.3), width: 2.w),
+                          color: ColorsManager.secondaryColor
+                              .withValues(alpha: 0.3),
+                          width: 2.w),
                       color: Colors.grey.shade100,
                     ),
                     child: Center(

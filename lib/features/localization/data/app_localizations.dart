@@ -60,74 +60,102 @@ class AppLocalizations {
 
       // Terms & Conditions
       'terms_title': 'Terms & Conditions',
-      'terms_intro': 'Please read these terms and conditions carefully before using Wartil services.',
+      'terms_intro':
+          'Please read these terms and conditions carefully before using Wartil services.',
       'terms_p1_title': '1. Nature of Service',
-      'terms_p1_content': 'Waratel is an educational technology platform that enables users to receive Quranic education through direct audio or video sessions.\nTeachers are independent service providers.\nWaratel does not guarantee specific educational results.',
+      'terms_p1_content':
+          'Waratel is an educational technology platform that enables users to receive Quranic education through direct audio or video sessions.\nTeachers are independent service providers.\nWaratel does not guarantee specific educational results.',
       'terms_p2_title': '2. Eligibility',
-      'terms_p2_content': 'You must be legally eligible in your country.\nMinors use the service with parental consent.\nProof of parental consent may be required.',
+      'terms_p2_content':
+          'You must be legally eligible in your country.\nMinors use the service with parental consent.\nProof of parental consent may be required.',
       'terms_p3_title': '3. Sessions and Registration',
-      'terms_p3_content': '3.1 Recording: Sessions may be recorded (audio only or audio and video) depending on the session type.\n3.2 Silent Monitoring: Management has the right to enter sessions as a silent observer for: quality, protection of minors, investigation, and compliance. The user explicitly agrees to this.',
+      'terms_p3_content':
+          '3.1 Recording: Sessions may be recorded (audio only or audio and video) depending on the session type.\n3.2 Silent Monitoring: Management has the right to enter sessions as a silent observer for: quality, protection of minors, investigation, and compliance. The user explicitly agrees to this.',
       'terms_p4_title': '4. Payments',
-      'terms_p4_content': 'Payments are made through approved providers.\nWaratel does not store card data.\nRefunds are subject to store or payment gateway policies.\nWaratel has the right to freeze accounts in cases of suspected fraud.',
+      'terms_p4_content':
+          'Payments are made through approved providers.\nWaratel does not store card data.\nRefunds are subject to store or payment gateway policies.\nWaratel has the right to freeze accounts in cases of suspected fraud.',
       'terms_p5_title': '5. Rules of Conduct',
-      'terms_p5_content': 'Prohibited actions: Misuse, sharing external contact info, circumvention attempts, posting illegal content, and hacking the system.',
+      'terms_p5_content':
+          'Prohibited actions: Misuse, sharing external contact info, circumvention attempts, posting illegal content, and hacking the system.',
       'terms_p6_title': '6. Force Majeure',
-      'terms_p6_content': 'Waratel is not responsible for failures caused by circumstances beyond its control such as: natural disasters, global internet outages, international sanctions, political unrest, or provider failures.',
+      'terms_p6_content':
+          'Waratel is not responsible for failures caused by circumstances beyond its control such as: natural disasters, global internet outages, international sanctions, political unrest, or provider failures.',
       'terms_p7_title': '7. Export & Sanctions Compliance',
-      'terms_p7_content': 'The user acknowledges they are not subject to international sanctions, do not use the service from prohibited areas, and do not violate export laws.',
+      'terms_p7_content':
+          'The user acknowledges they are not subject to international sanctions, do not use the service from prohibited areas, and do not violate export laws.',
       'terms_p8_title': '8. Intellectual Property',
       'terms_p8_content': 'All rights reserved to Waratel.',
       'terms_p9_title': '9. Limits of Liability',
-      'terms_p9_content': 'To the maximum extent permitted by law: Waratel is not liable for indirect damages. Maximum liability = total payments during the last 3 months or \$100, whichever is greater.',
+      'terms_p9_content':
+          'To the maximum extent permitted by law: Waratel is not liable for indirect damages. Maximum liability = total payments during the last 3 months or \$100, whichever is greater.',
       'terms_p10_title': '10. Class Action Waiver',
-      'terms_p10_content': 'The user agrees that any dispute will be handled individually. Class or representative actions are not permitted.',
+      'terms_p10_content':
+          'The user agrees that any dispute will be handled individually. Class or representative actions are not permitted.',
       'terms_p11_title': '11. International Arbitration',
-      'terms_p11_content': 'Disputes are first referred to amicable resolution for 30 days, then to binding international arbitration under ICC rules in a neutral country determined by the operator. Language: English. Decisions are final and binding.',
-      
+      'terms_p11_content':
+          'Disputes are first referred to amicable resolution for 30 days, then to binding international arbitration under ICC rules in a neutral country determined by the operator. Language: English. Decisions are final and binding.',
+
       // Privacy Policy
       'privacy_title': 'Privacy Policy',
       'privacy_p12_title': '12. Data Types',
-      'privacy_p12_content': 'Account data, session data, recordings, technical data, and payment data (via providers).',
+      'privacy_p12_content':
+          'Account data, session data, recordings, technical data, and payment data (via providers).',
       'privacy_p13_title': '13. Legal Basis (GDPR)',
-      'privacy_p13_content': 'Contract performance, explicit consent, legitimate interests, and legal compliance.',
+      'privacy_p13_content':
+          'Contract performance, explicit consent, legitimate interests, and legal compliance.',
       'privacy_p14_title': '14. Data Retention Schedule',
-      'privacy_p14_content': 'Session recordings: 90 days.\nPayment records: 5 years.\nInactive accounts: Deleted after 24 months.\nTechnical support data: 24 months.',
+      'privacy_p14_content':
+          'Session recordings: 90 days.\nPayment records: 5 years.\nInactive accounts: Deleted after 24 months.\nTechnical support data: 24 months.',
       'privacy_p15_title': '15. International Data Transfer',
-      'privacy_p15_content': 'Data is transferred using Standard Contractual Clauses (SCC) and technical/organizational protection measures.',
+      'privacy_p15_content':
+          'Data is transferred using Standard Contractual Clauses (SCC) and technical/organizational protection measures.',
       'privacy_p16_title': '16. Data Security',
-      'privacy_p16_content': 'SSL/TLS encryption, restricted storage, limited permissions, and periodic security reviews.',
+      'privacy_p16_content':
+          'SSL/TLS encryption, restricted storage, limited permissions, and periodic security reviews.',
       'privacy_p17_title': '17. Security Breach Notification',
-      'privacy_p17_content': 'In case of a breach affecting data: Authorities are notified within 72 hours if required by law. Affected users will be notified as necessary.',
+      'privacy_p17_content':
+          'In case of a breach affecting data: Authorities are notified within 72 hours if required by law. Affected users will be notified as necessary.',
       'privacy_p18_title': '18. User Rights (GDPR)',
-      'privacy_p18_content': 'Access, rectification, deletion, restriction, data portability, and withdrawal of consent.',
+      'privacy_p18_content':
+          'Access, rectification, deletion, restriction, data portability, and withdrawal of consent.',
       'privacy_p19_title': '19. COPPA (US Children Privacy)',
-      'privacy_p19_content': 'If data is collected from a minor in the US: Parental consent is obtained, and parents can request data deletion.',
+      'privacy_p19_content':
+          'If data is collected from a minor in the US: Parental consent is obtained, and parents can request data deletion.',
       'privacy_p20_title': '20. DPA - Data Processing Addendum',
-      'privacy_p20_content': 'Service providers process data only on behalf of Waratel, subject to data protection agreements and equivalent security measures.',
+      'privacy_p20_content':
+          'Service providers process data only on behalf of Waratel, subject to data protection agreements and equivalent security measures.',
       'privacy_p21_title': '21. DMCA & Copyright Procedure',
-      'privacy_p21_content': 'If content violates your rights, send a notification to info@wartil.com including work description, link, contact info, and good faith statement.',
+      'privacy_p21_content':
+          'If content violates your rights, send a notification to info@wartil.com including work description, link, contact info, and good faith statement.',
       'privacy_p22_title': '22. Policy Modification',
-      'privacy_p22_content': 'Waratel may modify this policy. Continued use constitutes agreement.',
+      'privacy_p22_content':
+          'Waratel may modify this policy. Continued use constitutes agreement.',
 
       // Schedule
       'schedule_title': 'Schedule',
       'cancel_before_title': 'Cancel session before time',
-      'cancel_before_subtitle': 'You can cancel any session 12 hours before the session time',
+      'cancel_before_subtitle':
+          'You can cancel any session 12 hours before the session time',
       'no_show_title': 'Student no-show',
-      'no_show_subtitle': '30% of the reserved minutes will be added to your balance',
+      'no_show_subtitle':
+          '30% of the reserved minutes will be added to your balance',
       'no_scheduled_appointments': 'No scheduled appointments yet',
-      'regular_students_benefit': 'Regular students will be able to book more sessions with you',
+      'regular_students_benefit':
+          'Regular students will be able to book more sessions with you',
       'add_appointments_now': 'Add appointments now',
       'delete_all': 'Delete All',
       'booked': 'Booked',
       'delete_appointment_title': 'Delete Appointment',
-      'delete_appointment_confirm': 'Are you sure you want to delete this appointment?',
+      'delete_appointment_confirm':
+          'Are you sure you want to delete this appointment?',
       'delete_all_appointments_title': 'Delete all appointments',
-      'delete_all_appointments_confirm': 'Are you sure you want to delete all appointments for this day?',
+      'delete_all_appointments_confirm':
+          'Are you sure you want to delete all appointments for this day?',
 
       // Record
       'sessions_record': 'Sessions Record',
-      'sessions_history_subtitle': 'View past recorded sessions and their details',
+      'sessions_history_subtitle':
+          'View past recorded sessions and their details',
       'no_recorded_sessions': 'No recorded sessions yet',
       'view_report': 'View Report',
       'session_details': 'Session Details',
@@ -144,6 +172,11 @@ class AppLocalizations {
       'not_specified': 'Not specified',
       'present': 'Present',
       'absent': 'Absent',
+      'no_report_available': 'No report available for this session',
+      'maqraa_session': 'Maqraa Session',
+      'private_call': 'Private Call',
+      'speaker_on': 'Speaker On',
+      'speaker_off': 'Speaker Off',
 
       // Ratings / Maqraa
       'maqraa_title': 'Al-Maqraa',
@@ -162,7 +195,8 @@ class AppLocalizations {
       'student_label': 'Student',
       'unregistered': 'Unregistered',
       'end_maqraa': 'End Maqraa',
-      'end_session_only_confirm': 'There are no registered or present students. Do you want to end the session only?',
+      'end_session_only_confirm':
+          'There are no registered or present students. Do you want to end the session only?',
       'end_session': 'End Session',
       'you': 'You',
       'you_teacher': 'You (Teacher)',
@@ -257,15 +291,19 @@ class AppLocalizations {
       'new_session_notif': 'New Session',
       'session_msg_notif': 'You have a new session with student %s at %s',
       'achievement_notif': 'Achievement Plan Update',
-      'achievement_msg_notif': 'Your achievement plan has been updated successfully',
+      'achievement_msg_notif':
+          'Your achievement plan has been updated successfully',
       'reminder_notif': 'Reminder',
-      'reminder_msg_notif': 'Don\'t forget to review this week\'s scheduled sessions',
+      'reminder_msg_notif':
+          'Don\'t forget to review this week\'s scheduled sessions',
       'add_appointments': 'Add Appointments',
-      'schedule_warning_1': 'The schedule is valid for two months and can be modified later.',
+      'schedule_warning_1':
+          'The schedule is valid for two months and can be modified later.',
       'schedule_warning_2': 'Peak times are usually from 4 PM to 8 PM.',
       'select_date': 'Select Date',
       'select_time_periods': 'Select Time Periods',
-      'period_instruction': 'Each period is 30 minutes — Click a period to expand and select times',
+      'period_instruction':
+          'Each period is 30 minutes — Click a period to expand and select times',
       'selected_appointments_count': 'Selected %s appointments',
       'save_appointments': 'Save Appointments',
       'select_all': 'Select All',
@@ -291,10 +329,12 @@ class AppLocalizations {
       'submitting': 'Submitting...',
       'report_success': 'Report submitted successfully!',
       'report_error': 'Error submitting report',
-      'report_instruction': 'The report must be completed to update the student record and confirm the session.',
+      'report_instruction':
+          'The report must be completed to update the student record and confirm the session.',
       'reception_rating': 'Reception Level Rating',
       'educational_notes': 'Educational and Sharia Notes',
-      'educational_notes_hint': 'Notes on pronunciation, Tajweed, or memorization...',
+      'educational_notes_hint':
+          'Notes on pronunciation, Tajweed, or memorization...',
       'suggested_next_assignment': 'Suggested Next Assignment',
       'assignment_example': 'Example: from Verse 10 to 25 of Surat Al-Baqarah',
       'save_report_end_session': 'Save Report and End Session',
@@ -308,16 +348,21 @@ class AppLocalizations {
       'about_title': 'About Waratel',
       'why_us': 'Why Us?',
       'unique_experience': 'Unique Educational Experience',
-      'unique_experience_desc': 'We combine authenticity with modern technology to achieve your goals.',
+      'unique_experience_desc':
+          'We combine authenticity with modern technology to achieve your goals.',
       'flexible_plans': 'Flexible Plans',
-      'flexible_plans_desc': 'Choose your plan and track without limits and pay per your time.',
+      'flexible_plans_desc':
+          'Choose your plan and track without limits and pay per your time.',
       'different_ages': 'Different Ages',
-      'different_ages_desc': 'Whatever your age or level, you will find a specialized teacher and a suitable curriculum.',
+      'different_ages_desc':
+          'Whatever your age or level, you will find a specialized teacher and a suitable curriculum.',
       'around_the_clock': 'Around the Clock',
-      'around_the_clock_desc': 'Live audio or video sessions available to you at any time, 24 hours a day.',
+      'around_the_clock_desc':
+          'Live audio or video sessions available to you at any time, 24 hours a day.',
       'contact_us_title': 'Contact Us',
       'we_are_here': 'We are here to help you',
-      'support_team_desc': 'Waratel support team is available around the clock to answer your inquiries and suggestions. Do not hesitate to message us.',
+      'support_team_desc':
+          'Waratel support team is available around the clock to answer your inquiries and suggestions. Do not hesitate to message us.',
       'email_hint': 'Email',
       'subject_hint': 'Message Subject',
       'message_hint': 'Write your message here...',
@@ -379,54 +424,77 @@ class AppLocalizations {
 
       // Terms & Conditions
       'terms_title': 'الشروط والأحكام & سياسة الخصوصية',
-      'terms_intro': 'يرجى قراءة هذه الشروط والأحكام بعناية قبل استخدام خدمات ورتِّل.',
+      'terms_intro':
+          'يرجى قراءة هذه الشروط والأحكام بعناية قبل استخدام خدمات ورتِّل.',
       'terms_p1_title': '1. طبيعة الخدمة',
-      'terms_p1_content': 'ورتِّل منصة تقنية تعليمية تُمكّن المستخدمين من تلقي تعليم القرآن الكريم عبر جلسات مباشرة صوتية أو مرئية.\nالمعلمون مقدمو خدمة مستقلون.\nلا تضمن ورتِّل نتائج تعليمية محددة.',
+      'terms_p1_content':
+          'ورتِّل منصة تقنية تعليمية تُمكّن المستخدمين من تلقي تعليم القرآن الكريم عبر جلسات مباشرة صوتية أو مرئية.\nالمعلمون مقدمو خدمة مستقلون.\nلا تضمن ورتِّل نتائج تعليمية محددة.',
       'terms_p2_title': '2. الأهلية',
-      'terms_p2_content': 'يجب أن تكون مؤهلاً قانونياً في بلدك.\nالقاصر يستخدم الخدمة بموافقة ولي الأمر.\nقد يُطلب إثبات موافقة ولي الأمر.',
+      'terms_p2_content':
+          'يجب أن تكون مؤهلاً قانونياً في بلدك.\nالقاصر يستخدم الخدمة بموافقة ولي الأمر.\nقد يُطلب إثبات موافقة ولي الأمر.',
       'terms_p3_title': '3. الجلسات والتسجيل',
-      'terms_p3_content': '3.1 التسجيل: قد يتم تسجيل الجلسات: صوت فقط أو صوت وصورة بحسب نوع الجلسة.\n3.2 المراقبة الصامتة: يحق للإدارة دخول الجلسة كمراقب صامت لأغراض: الجودة، حماية القُصّر، التحقيق، الامتثال. ويوافق المستخدم على ذلك صراحة.',
+      'terms_p3_content':
+          '3.1 التسجيل: قد يتم تسجيل الجلسات: صوت فقط أو صوت وصورة بحسب نوع الجلسة.\n3.2 المراقبة الصامتة: يحق للإدارة دخول الجلسة كمراقب صامت لأغراض: الجودة، حماية القُصّر، التحقيق، الامتثال. ويوافق المستخدم على ذلك صراحة.',
       'terms_p4_title': '4. المدفوعات',
-      'terms_p4_content': 'تتم عبر مزودي دفع معتمدين.\nلا تخزن ورتِّل بيانات بطاقات.\nيخضع الاسترداد لسياسة المتجر أو بوابة الدفع.\nيحق تجميد الحساب في حالات الاشتباه الاحتيالي.',
+      'terms_p4_content':
+          'تتم عبر مزودي دفع معتمدين.\nلا تخزن ورتِّل بيانات بطاقات.\nيخضع الاسترداد لسياسة المتجر أو بوابة الدفع.\nيحق تجميد الحساب في حالات الاشتباه الاحتيالي.',
       'terms_p5_title': '5. قواعد السلوك',
-      'terms_p5_content': 'يحظر: إساءة الاستخدام، مشاركة وسائل خارجية، محاولة التحايل، نشر محتوى غير قانوني، واختراق النظام.',
+      'terms_p5_content':
+          'يحظر: إساءة الاستخدام، مشاركة وسائل خارجية، محاولة التحايل، نشر محتوى غير قانوني، واختراق النظام.',
       'terms_p6_title': '6. القوة القاهرة (Force Majeure)',
-      'terms_p6_content': 'لا تتحمل ورتِّل المسؤولية عن أي إخفاق ناتج عن ظروف خارجة عن السيطرة مثل: الكوارث الطبيعية، انقطاع الإنترنت العالمي، عقوبات دولية، اضطرابات سياسية، وأعطال مزودي الخدمات.',
+      'terms_p6_content':
+          'لا تتحمل ورتِّل المسؤولية عن أي إخفاق ناتج عن ظروف خارجة عن السيطرة مثل: الكوارث الطبيعية، انقطاع الإنترنت العالمي، عقوبات دولية، اضطرابات سياسية، وأعطال مزودي الخدمات.',
       'terms_p7_title': '7. الامتثال للتصدير والعقوبات',
-      'terms_p7_content': 'يقر المستخدم أنه: لا يخضع لعقوبات دولية، لا يستخدم الخدمة من مناطق محظورة، ولا ينتهك قوانين التصدير.',
+      'terms_p7_content':
+          'يقر المستخدم أنه: لا يخضع لعقوبات دولية، لا يستخدم الخدمة من مناطق محظورة، ولا ينتهك قوانين التصدير.',
       'terms_p8_title': '8. الملكية الفكرية',
       'terms_p8_content': 'جميع الحقوق محفوظة لورتِّل.',
       'terms_p9_title': '9. حدود المسؤولية',
-      'terms_p9_content': 'إلى الحد الأقصى المسموح به قانونًا: لا تتحمل ورتِّل الأضرار غير المباشرة. الحد الأقصى للمسؤولية = إجمالي المدفوعات خلال آخر 3 أشهر أو 100 دولار أمريكي أيهما أكبر.',
-      'terms_p10_title': '10. التنازل عن الدعاوى الجماعية (Class Action Waiver)',
-      'terms_p10_content': 'يوافق المستخدم على أن أي نزاع يتم بشكل فردي، ولا يجوز رفع دعاوى جماعية أو تمثيلية.',
+      'terms_p9_content':
+          'إلى الحد الأقصى المسموح به قانونًا: لا تتحمل ورتِّل الأضرار غير المباشرة. الحد الأقصى للمسؤولية = إجمالي المدفوعات خلال آخر 3 أشهر أو 100 دولار أمريكي أيهما أكبر.',
+      'terms_p10_title':
+          '10. التنازل عن الدعاوى الجماعية (Class Action Waiver)',
+      'terms_p10_content':
+          'يوافق المستخدم على أن أي نزاع يتم بشكل فردي، ولا يجوز رفع دعاوى جماعية أو تمثيلية.',
       'terms_p11_title': '11. التحكيم الدولي',
-      'terms_p11_content': 'أي نزاع يُحال أولًا للحل الودي لمدة 30 يومًا، ثم إلى تحكيم دولي ملزم وفق قواعد ICC في دولة محايدة يحددها الكيان المشغِّل. اللغة: الإنجليزية. القرار نهائي وملزم.',
-      
+      'terms_p11_content':
+          'أي نزاع يُحال أولًا للحل الودي لمدة 30 يومًا، ثم إلى تحكيم دولي ملزم وفق قواعد ICC في دولة محايدة يحددها الكيان المشغِّل. اللغة: الإنجليزية. القرار نهائي وملزم.',
+
       // Privacy Policy
       'privacy_title': 'سياسة الخصوصية',
       'privacy_p12_title': '12. أنواع البيانات',
-      'privacy_p12_content': 'بيانات حساب، بيانات جلسات، تسجيلات، بيانات تقنية، وبيانات دفع (عبر مزودي الدفع).',
+      'privacy_p12_content':
+          'بيانات حساب، بيانات جلسات، تسجيلات، بيانات تقنية، وبيانات دفع (عبر مزودي الدفع).',
       'privacy_p13_title': '13. الأساس القانوني (GDPR)',
-      'privacy_p13_content': 'تنفيذ عقد، موافقة صريحة، مصالح مشروعة، وامتثال قانوني.',
+      'privacy_p13_content':
+          'تنفيذ عقد، موافقة صريحة، مصالح مشروعة، وامتثال قانوني.',
       'privacy_p14_title': '14. جدول الاحتفاظ بالبيانات',
-      'privacy_p14_content': 'تسجيلات الجلسات: 90 يومًا.\nسجلات الدفع: 5 سنوات.\nالحسابات غير النشطة: حذف بعد 24 شهرًا.\nبيانات الدعم الفني: 24 شهرًا.',
+      'privacy_p14_content':
+          'تسجيلات الجلسات: 90 يومًا.\nسجلات الدفع: 5 سنوات.\nالحسابات غير النشطة: حذف بعد 24 شهرًا.\nبيانات الدعم الفني: 24 شهرًا.',
       'privacy_p15_title': '15. نقل البيانات دوليًا',
-      'privacy_p15_content': 'يتم نقل البيانات باستخدام Standard Contractual Clauses (SCC) وتدابير حماية تقنية وتنظيمية.',
+      'privacy_p15_content':
+          'يتم نقل البيانات باستخدام Standard Contractual Clauses (SCC) وتدابير حماية تقنية وتنظيمية.',
       'privacy_p16_title': '16. أمن البيانات',
-      'privacy_p16_content': 'تشفير SSL/TLS، تخزين مقيد، صلاحيات محدودة، ومراجعات أمنية دورية.',
+      'privacy_p16_content':
+          'تشفير SSL/TLS، تخزين مقيد، صلاحيات محدودة، ومراجعات أمنية دورية.',
       'privacy_p17_title': '17. الإخطار بخرق أمني',
-      'privacy_p17_content': 'في حال خرق يؤثر على البيانات: يتم إخطار الجهات المختصة خلال 72 ساعة إذا تطلب القانون. يتم إخطار المستخدمين عند اللزوم.',
+      'privacy_p17_content':
+          'في حال خرق يؤثر على البيانات: يتم إخطار الجهات المختصة خلال 72 ساعة إذا تطلب القانون. يتم إخطار المستخدمين عند اللزوم.',
       'privacy_p18_title': '18. حقوق المستخدم (GDPR)',
-      'privacy_p18_content': 'الوصول، التصحيح، الحذف، التقييد، نقل البيانات، وسحب الموافقة.',
+      'privacy_p18_content':
+          'الوصول، التصحيح، الحذف، التقييد، نقل البيانات، وسحب الموافقة.',
       'privacy_p19_title': '19. COPPA (خصوصية الأطفال)',
-      'privacy_p19_content': 'إذا تم جمع بيانات من طفل دون السن القانوني في الولايات المتحدة: يتم الحصول على موافقة ولي الأمر، ويمكن لولي الأمر طلب حذف البيانات.',
+      'privacy_p19_content':
+          'إذا تم جمع بيانات من طفل دون السن القانوني في الولايات المتحدة: يتم الحصول على موافقة ولي الأمر، ويمكن لولي الأمر طلب حذف البيانات.',
       'privacy_p20_title': '20. ملحق معالجة البيانات (DPA)',
-      'privacy_p20_content': 'يعالج مزودو الخدمة البيانات فقط نيابة عن ورتِّل، ويخضعون لاتفاقيات حماية بيانات وتدابير أمنية مكافئة.',
+      'privacy_p20_content':
+          'يعالج مزودو الخدمة البيانات فقط نيابة عن ورتِّل، ويخضعون لاتفاقيات حماية بيانات وتدابير أمنية مكافئة.',
       'privacy_p21_title': '21. إجراءات حقوق الطبع والنشر (DMCA)',
-      'privacy_p21_content': 'إذا كنت تعتقد أن محتوى ينتهك حقوقك، أرسل إخطارًا إلى info@wartil.com يتضمن وصف العمل، الرابط، بيانات التواصل، وإقرار حسن نية.',
+      'privacy_p21_content':
+          'إذا كنت تعتقد أن محتوى ينتهك حقوقك، أرسل إخطارًا إلى info@wartil.com يتضمن وصف العمل، الرابط، بيانات التواصل، وإقرار حسن نية.',
       'privacy_p22_title': '22. تعديل السياسة',
-      'privacy_p22_content': 'يجوز تعديل هذه السياسة. استمرار الاستخدام يعد موافقة.',
+      'privacy_p22_content':
+          'يجوز تعديل هذه السياسة. استمرار الاستخدام يعد موافقة.',
 
       // Schedule
       'schedule_title': 'الجدول',
@@ -435,14 +503,16 @@ class AppLocalizations {
       'no_show_title': 'عدم حضور الطالب للجلسة',
       'no_show_subtitle': 'سيتم إضافة 30% من الدقائق المحجوزة إلى رصيدك',
       'no_scheduled_appointments': 'لا توجد مواعيد مجدولة حتى الآن',
-      'regular_students_benefit': 'الطلاب المنتظمون في الدراسة معك سيتمكنون من حجز عدد أكبر من الحصص',
+      'regular_students_benefit':
+          'الطلاب المنتظمون في الدراسة معك سيتمكنون من حجز عدد أكبر من الحصص',
       'add_appointments_now': 'إضافة مواعيد الآن',
       'delete_all': 'حذف الكل',
       'booked': 'محجوز',
       'delete_appointment_title': 'حذف الموعد',
       'delete_appointment_confirm': 'هل أنت متأكد من حذف الموعد؟',
       'delete_all_appointments_title': 'حذف جميع المواعيد',
-      'delete_all_appointments_confirm': 'هل أنت متأكد من حذف جميع مواعيد هذا اليوم؟',
+      'delete_all_appointments_confirm':
+          'هل أنت متأكد من حذف جميع مواعيد هذا اليوم؟',
 
       // Record
       'sessions_record': 'سجل الجلسات',
@@ -463,6 +533,11 @@ class AppLocalizations {
       'not_specified': 'لم يحدد',
       'present': 'حاضر',
       'absent': 'غائب',
+      'no_report_available': 'لا يوجد تقرير متاح لهذه الجلسة',
+      'maqraa_session': 'جلسة مقرأة',
+      'private_call': 'مكالمة خاصة',
+      'speaker_on': 'مكبر الصوت يعمل',
+      'speaker_off': 'مكبر الصوت مغلق',
 
       // Ratings / Maqraa
       'maqraa_title': 'المقرأة',
@@ -481,7 +556,8 @@ class AppLocalizations {
       'student_label': 'طالب',
       'unregistered': 'غير مسجل',
       'end_maqraa': 'إنهاء المقرأة',
-      'end_session_only_confirm': 'لا يوجد طلاب مسجلين أو حاضرين حالياً. هل تريد إنهاء الجلسة فقط؟',
+      'end_session_only_confirm':
+          'لا يوجد طلاب مسجلين أو حاضرين حالياً. هل تريد إنهاء الجلسة فقط؟',
       'end_session': 'إنهاء الجلسة',
       'you': 'أنت',
       'you_teacher': 'أنت (المعلم)',
@@ -580,11 +656,13 @@ class AppLocalizations {
       'reminder_notif': 'تذكير',
       'reminder_msg_notif': 'لا تنسى مراجعة الجلسات المقررة لهذا الأسبوع',
       'add_appointments': 'إضافة المواعيد',
-      'schedule_warning_1': 'جدول المواعيد سارٍ لمدة شهرين وقابل للتعديل لاحقاً.',
+      'schedule_warning_1':
+          'جدول المواعيد سارٍ لمدة شهرين وقابل للتعديل لاحقاً.',
       'schedule_warning_2': 'أوقات الذروة في الأغلب من 4 الي 8 مساء.',
       'select_date': 'اختر التاريخ',
       'select_time_periods': 'اختر الفترات الزمنية',
-      'period_instruction': 'كل فترة 30 دقيقة — اضغط على الفترة لتوسيعها واختيار المواعيد',
+      'period_instruction':
+          'كل فترة 30 دقيقة — اضغط على الفترة لتوسيعها واختيار المواعيد',
       'selected_appointments_count': 'تم اختيار %s موعد',
       'save_appointments': 'حفظ المواعيد',
       'select_all': 'تحديد الكل',
@@ -627,16 +705,21 @@ class AppLocalizations {
       'about_title': 'عن ورتل',
       'why_us': 'لماذا نحن؟',
       'unique_experience': 'تجربة تعليمية فريدة',
-      'unique_experience_desc': 'نجمع بين الأصالة والتقنية الحديثة لتحقيق أهدافك.',
+      'unique_experience_desc':
+          'نجمع بين الأصالة والتقنية الحديثة لتحقيق أهدافك.',
       'flexible_plans': 'خطط مرنة',
-      'flexible_plans_desc': 'اختر خطتك ومسارك التعليمي المفضل بلا قيود وبحسب وقت فراغك.',
+      'flexible_plans_desc':
+          'اختر خطتك ومسارك التعليمي المفضل بلا قيود وبحسب وقت فراغك.',
       'different_ages': 'مختلف الأعمار',
-      'different_ages_desc': 'مهما كان عمرك أو مستواك، ستجد معلماً متخصصاً ومنهجاً يناسبك.',
+      'different_ages_desc':
+          'مهما كان عمرك أو مستواك، ستجد معلماً متخصصاً ومنهجاً يناسبك.',
       'around_the_clock': 'على مدار الساعة',
-      'around_the_clock_desc': 'جلسات مباشرة بالصوت أو الفيديو متاحة لك في أي وقت، 24 ساعة يومياً.',
+      'around_the_clock_desc':
+          'جلسات مباشرة بالصوت أو الفيديو متاحة لك في أي وقت، 24 ساعة يومياً.',
       'contact_us_title': 'تواصل معنا',
       'we_are_here': 'نحن هنا لمساعدتك',
-      'support_team_desc': 'فريق دعم "ورتل" متاح على مدار الساعة للإجابة على استفساراتكم ومقترحاتكم. لا تتردد في مراسلتنا.',
+      'support_team_desc':
+          'فريق دعم "ورتل" متاح على مدار الساعة للإجابة على استفساراتكم ومقترحاتكم. لا تتردد في مراسلتنا.',
       'email_hint': 'البريد الإلكتروني',
       'subject_hint': 'موضوع الرسالة',
       'message_hint': 'اكتب رسالتك هنا...',

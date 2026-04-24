@@ -179,7 +179,8 @@ class EndSessionResponse {
   final String message;
   final EndSessionSummary? summary;
 
-  EndSessionResponse({required this.status, required this.message, this.summary});
+  EndSessionResponse(
+      {required this.status, required this.message, this.summary});
 
   factory EndSessionResponse.fromJson(Map<String, dynamic> json) =>
       _$EndSessionResponseFromJson(json);

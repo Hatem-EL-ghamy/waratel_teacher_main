@@ -8,6 +8,7 @@ import 'package:waratel_app/features/profile/logic/cubit/profile_state.dart';
 import 'package:waratel_app/features/profile/data/models/profile_models.dart';
 import 'package:waratel_app/features/localization/data/app_localizations.dart';
 import 'package:waratel_app/features/localization/logic/cubit/locale_cubit.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
@@ -27,7 +28,8 @@ class CustomDrawer extends StatelessWidget {
               // PERF: buildWhen ensures header only rebuilds when profile
               // data loads — not on logout / error / other unrelated states.
               BlocBuilder<ProfileCubit, ProfileState>(
-                buildWhen: (_, curr) => curr is ProfileLoaded || curr is ProfileLoading,
+                buildWhen: (_, curr) =>
+                    curr is ProfileLoaded || curr is ProfileLoading,
                 builder: (context, state) {
                   ProfileUser? user;
                   String? photoPath;
@@ -38,8 +40,8 @@ class CustomDrawer extends StatelessWidget {
                     salary = state.profileResponse.profile?.salary ?? '0.00';
                   }
                   return Container(
-                    padding: EdgeInsets.symmetric(
-                        vertical: 20.h, horizontal: 16.w),
+                    padding:
+                        EdgeInsets.symmetric(vertical: 20.h, horizontal: 16.w),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.12),
                       border: Border(
@@ -53,11 +55,11 @@ class CustomDrawer extends StatelessWidget {
                       children: [
                         CircleAvatar(
                           radius: 30.r,
-                          backgroundColor:
-                              Colors.white.withValues(alpha: 0.25),
+                          backgroundColor: Colors.white.withValues(alpha: 0.25),
                           backgroundImage: photoPath != null
-                              ? NetworkImage(
-                                  'https://wartil.com/storage/$photoPath')
+                              ? CachedNetworkImageProvider(
+                                      'https://wartil.com/storage/$photoPath')
+                                  as ImageProvider
                               : null,
                           child: photoPath == null
                               ? Icon(Icons.person,
@@ -81,8 +83,7 @@ class CustomDrawer extends StatelessWidget {
                               Text(
                                 '$salary ${'usd'.tr(context)}',
                                 style: TextStyle(
-                                  color:
-                                      Colors.white.withValues(alpha: 0.75),
+                                  color: Colors.white.withValues(alpha: 0.75),
                                   fontSize: 14.sp,
                                 ),
                               ),
@@ -125,11 +126,28 @@ class CustomDrawer extends StatelessWidget {
                       },
                     ),
                     _DrawerMenuItem(
+                      icon: Icons.menu_book,
+                      label: 'holy_quran_title'.tr(context),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.pushNamed(context, Routes.quran);
+                      },
+                    ),
+
+                    _DrawerMenuItem(
                       icon: Icons.headset_mic_outlined,
                       label: 'contact_us'.tr(context),
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.pushNamed(context, Routes.contactUs);
+                      },
+                    ),
+                    _DrawerMenuItem(
+                      icon: Icons.auto_awesome_rounded,
+                      label: 'ورتل الذكي', // Manually added as it might not be in localization yet
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.pushNamed(context, Routes.aiChat);
                       },
                     ),
                     _DrawerMenuItem(
@@ -144,11 +162,6 @@ class CustomDrawer extends StatelessWidget {
                       icon: Icons.language,
                       label: 'change_language'.tr(context),
                       onTap: () => _showLanguageDialog(context),
-                    ),
-                    _DrawerMenuItem(
-                      icon: Icons.menu_book,
-                      label: 'quran'.tr(context),
-                      onTap: () {},
                     ),
                     _DrawerMenuItem(
                       icon: Icons.bar_chart,
@@ -169,7 +182,9 @@ class CustomDrawer extends StatelessWidget {
                     // ── Logout ──────────────────────────────────────────
                     BlocBuilder<ProfileCubit, ProfileState>(
                       buildWhen: (_, curr) =>
-                          curr is LogoutLoading || curr is LogoutSuccess || curr is LogoutError,
+                          curr is LogoutLoading ||
+                          curr is LogoutSuccess ||
+                          curr is LogoutError,
                       builder: (context, state) {
                         final isLoading = state is LogoutLoading;
                         return ListTile(
@@ -216,8 +231,8 @@ class CustomDrawer extends StatelessWidget {
       builder: (dialogContext) {
         return AlertDialog(
           title: Text('select_language'.tr(context)),
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16.r)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -269,8 +284,7 @@ class _DrawerMenuItem extends StatelessWidget {
         ),
       ),
       onTap: onTap,
-      contentPadding:
-          EdgeInsets.symmetric(horizontal: 24.w, vertical: 2.h),
+      contentPadding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 2.h),
       splashColor: Colors.white12,
       hoverColor: Colors.white10,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),

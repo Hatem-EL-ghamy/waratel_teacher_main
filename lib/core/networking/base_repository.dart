@@ -9,7 +9,7 @@ import 'package:dio/dio.dart';
 ///
 /// الاستخدام:
 ///   class LoginRepo extends BaseRepository { ... }
-///   Future<String> login() => handleApiCall(() => _api.login(...));
+///   `Future<String> login() => handleApiCall(() => _api.login(...));`
 abstract class BaseRepository {
   /// ينفّذ [apiCall] ويُحوّل أخطاء Dio إلى رسائل واضحة
   Future<T> handleApiCall<T>(Future<T> Function() apiCall) async {
@@ -34,14 +34,23 @@ abstract class BaseRepository {
       case DioExceptionType.badResponse:
         final statusCode = e.response?.statusCode;
         final message = _extractMessage(e.response?.data);
-        if (statusCode == 401) return Exception('غير مصرح، يرجى تسجيل الدخول مجدداً');
-        if (statusCode == 403) return Exception('ليس لديك صلاحية للوصول');
-        if (statusCode == 404) return Exception('البيانات المطلوبة غير موجودة');
-        if (statusCode == 422) return Exception(message ?? 'بيانات غير صحيحة');
+        if (statusCode == 401) {
+          return Exception('غير مصرح، يرجى تسجيل الدخول مجدداً');
+        }
+        if (statusCode == 403) {
+          return Exception('ليس لديك صلاحية للوصول');
+        }
+        if (statusCode == 404) {
+          return Exception('البيانات المطلوبة غير موجودة');
+        }
+        if (statusCode == 422) {
+          return Exception(message ?? 'بيانات غير صحيحة');
+        }
         if (statusCode != null && statusCode >= 500) {
           return Exception('خطأ في الخادم، حاول مرة أخرى لاحقاً');
         }
-        return Exception(message ?? 'حدث خطأ في الاتصال (${statusCode ?? "?"})');
+        return Exception(
+            message ?? 'حدث خطأ في الاتصال (${statusCode ?? "?"})');
       case DioExceptionType.cancel:
         return Exception('تم إلغاء الطلب');
       default:

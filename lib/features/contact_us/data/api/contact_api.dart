@@ -9,6 +9,7 @@ class ContactApi {
 
   Future<ContactSettingsResponse> getContactSettings() async {
     final response = await _dio.get(ApiConstants.teacherContactSettings);
-    return ContactSettingsResponse.fromJson(response.data as Map<String, dynamic>);
+    return ContactSettingsResponse.fromJson(
+        response.data as Map<String, dynamic>);
   }
 }

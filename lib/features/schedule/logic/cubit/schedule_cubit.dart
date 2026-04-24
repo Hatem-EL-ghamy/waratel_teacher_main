@@ -11,19 +11,31 @@ class ScheduleCubit extends Cubit<ScheduleState> {
   Map<String, List<SlotModel>> calendar = {};
 
   Future<void> loadSchedule({int page = 1, int perPage = 15}) async {
-    emit(ScheduleLoading());
+    if (!isClosed) emit(ScheduleLoading());
     try {
       final response =
           await scheduleRepo.getMySlots(page: page, perPage: perPage);
 
       if (response.status && response.data != null) {
-        calendar = response.data!.calendar;
-        emit(ScheduleLoaded(calendar, response.data!.pagination));
+        final newCalendar = response.data!.calendar;
+
+        final Map<String, List<SlotModel>> filteredCalendar = {};
+        newCalendar.forEach((date, slots) {
+          final activeSlots = slots.where((slot) => !slot.isPast).toList();
+          if (activeSlots.isNotEmpty) {
+            filteredCalendar[date] = activeSlots;
+          }
+        });
+
+        calendar = filteredCalendar;
+        if (!isClosed) {
+          emit(ScheduleLoaded(calendar, response.data!.pagination));
+        }
       } else if (response.status && response.data == null) {
         calendar = {};
-        emit(ScheduleLoaded(calendar, null));
+        if (!isClosed) emit(ScheduleLoaded(calendar, null));
       } else {
-        emit(ScheduleError(response.message));
+        if (!isClosed) emit(ScheduleError(response.message));
       }
     } catch (e) {
       if (!isClosed) {
@@ -38,7 +50,8 @@ class ScheduleCubit extends Cubit<ScheduleState> {
   }) async {
     emit(AddSlotsLoading());
     try {
-      final List<String> startTimes = slots.map((s) => s['start_time']!).toList();
+      final List<String> startTimes =
+          slots.map((s) => s['start_time']!).toList();
       final List<String> endTimes = slots.map((s) => s['end_time']!).toList();
 
       final response = await scheduleRepo.addBatchSlots(
@@ -63,16 +76,16 @@ class ScheduleCubit extends Cubit<ScheduleState> {
   }
 
   Future<void> deleteSlot(int slotId) async {
-    emit(DeleteSlotLoading());
+    if (!isClosed) emit(DeleteSlotLoading());
     try {
       final response = await scheduleRepo.deleteSlot(slotId);
 
       if (response.status) {
-        emit(DeleteSlotSuccess(response.message));
+        if (!isClosed) emit(DeleteSlotSuccess(response.message));
         // Reload schedule after deleting
         await loadSchedule();
       } else {
-        emit(DeleteSlotError(response.message));
+        if (!isClosed) emit(DeleteSlotError(response.message));
       }
     } catch (e) {
       if (!isClosed) {
@@ -82,16 +95,16 @@ class ScheduleCubit extends Cubit<ScheduleState> {
   }
 
   Future<void> deleteSlotsByDay(String date) async {
-    emit(DeleteSlotLoading());
+    if (!isClosed) emit(DeleteSlotLoading());
     try {
       final response = await scheduleRepo.deleteSlotsByDay(date);
 
       if (response.status) {
-        emit(DeleteSlotSuccess(response.message));
+        if (!isClosed) emit(DeleteSlotSuccess(response.message));
         // Reload schedule after deleting
         await loadSchedule();
       } else {
-        emit(DeleteSlotError(response.message));
+        if (!isClosed) emit(DeleteSlotError(response.message));
       }
     } catch (e) {
       if (!isClosed) {

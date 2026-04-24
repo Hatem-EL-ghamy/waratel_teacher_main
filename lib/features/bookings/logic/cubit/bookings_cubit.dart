@@ -1,27 +1,35 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:waratel_app/features/bookings/data/repos/bookings_repo.dart';
+import 'package:waratel_app/features/bookings/domain/repos/i_bookings_repo.dart';
 import 'package:waratel_app/features/bookings/data/models/booking_model.dart';
 import 'package:waratel_app/features/bookings/logic/cubit/bookings_state.dart';
 
 class BookingsCubit extends Cubit<BookingsState> {
-  final BookingsRepo _repo;
+  final IBookingsRepo _repo;
 
   BookingsCubit(this._repo) : super(BookingsInitial()) {
     loadBookings();
   }
 
-  List<BookingModel> _bookings = [];
+  List<BookingModel> _upcomingBookings = [];
+  List<BookingModel> _historyBookings = [];
 
   Future<void> loadBookings({int page = 1}) async {
     emit(BookingsLoading());
     try {
       final response = await _repo.getBookings(page: page);
       if (response.status) {
-        _bookings = response.bookings;
+        _upcomingBookings = response.upcoming;
+        _historyBookings = response.history;
         final hasMore = response.pagination?.nextPageUrl != null;
-        emit(BookingsLoaded(List.from(_bookings), hasMore: hasMore));
+        emit(BookingsLoaded(
+          upcoming: List.from(_upcomingBookings),
+          history: List.from(_historyBookings),
+          hasMore: hasMore,
+        ));
       } else {
-        emit(BookingsError('فشل تحميل الحجوزات'));
+        emit(BookingsError(response.message.isEmpty
+            ? 'فشل تحميل الحجوزات'
+            : response.message));
       }
     } catch (e) {
       if (!isClosed) {
@@ -57,6 +65,7 @@ class BookingsCubit extends Cubit<BookingsState> {
           channel: response.channel,
           uid: response.uid,
           studentName: studentName,
+          callId: callSessionId > 0 ? callSessionId : slotId, // Use slotId as fallback callId
         ));
       } else {
         emit(StartCallError('فشل بدء المكالمة'));

@@ -73,6 +73,7 @@ class _AvailabilityToggleRow extends StatelessWidget {
     return BlocBuilder<HomeCubit, HomeState>(
       buildWhen: (_, curr) =>
           curr is HomeInitial ||
+          curr is HomeOnlineStatusLoaded ||
           curr is ToggleOnlineLoading ||
           curr is ToggleOnlineSuccess ||
           curr is ToggleOnlineError,
@@ -128,7 +129,8 @@ class _StarRatingRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<HomeCubit, HomeState>(
-      buildWhen: (prev, curr) => curr is HomeInitial,
+      buildWhen: (prev, curr) =>
+          curr is HomeInitial || curr is HomeOnlineStatusLoaded,
       builder: (context, state) {
         final rating = context.read<HomeCubit>().averageRating;
         return Row(
@@ -168,11 +170,14 @@ class _StarRatingRow extends StatelessWidget {
 
     for (int i = 0; i < 5; i++) {
       if (i < fullStars) {
-        stars.add(Icon(Icons.star, color: ColorsManager.accentColor, size: 18.sp));
+        stars.add(
+            Icon(Icons.star, color: ColorsManager.accentColor, size: 18.sp));
       } else if (i == fullStars && hasHalfStar) {
-        stars.add(Icon(Icons.star_half, color: ColorsManager.accentColor, size: 18.sp));
+        stars.add(Icon(Icons.star_half,
+            color: ColorsManager.accentColor, size: 18.sp));
       } else {
-        stars.add(Icon(Icons.star_border, color: ColorsManager.accentColor, size: 18.sp));
+        stars.add(Icon(Icons.star_border,
+            color: ColorsManager.accentColor, size: 18.sp));
       }
     }
     return Row(children: stars);

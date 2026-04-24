@@ -13,7 +13,8 @@ class ToggleOnlineResponse {
     return ToggleOnlineResponse(
       status: json['status'] ?? false,
       message: json['message'] ?? '',
-      data: ToggleOnlineData.fromJson(json['data'] ?? {}),
+      data: ToggleOnlineData.fromJson(
+          (json['data'] is Map<String, dynamic>) ? json['data'] : {}),
     );
   }
 }

@@ -103,7 +103,7 @@ class SharedPreferencesService {
   /// الحصول على اللغة المحفوظة
   static String getLanguage() {
     return _preferences?.getString(AppConstants.languageKey) ??
-           AppConstants.defaultLanguage;
+        AppConstants.defaultLanguage;
   }
 
   // ========== حذف البيانات ==========
@@ -133,4 +133,3 @@ class SharedPreferencesService {
     return prefs.clear();
   }
 }
-

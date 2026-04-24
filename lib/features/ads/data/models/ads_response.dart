@@ -11,9 +11,14 @@ class AdsResponse {
 
   factory AdsResponse.fromJson(Map<String, dynamic> json) {
     return AdsResponse(
-      status: json['status'] as bool,
-      message: json['message'].toString(),
-      data: AdsData.fromJson(json['data'] as Map<String, dynamic>),
+      status: json['status'] is bool
+          ? json['status'] as bool
+          : (json['status']?.toString() == 'true'),
+      message: json['message']?.toString() ?? '',
+      data: json['data'] != null
+          ? AdsData.fromJson(json['data'] as Map<String, dynamic>)
+          : const AdsData(
+              currentPage: 1, data: [], lastPage: 1, perPage: 10, total: 0),
     );
   }
 }
@@ -35,64 +40,35 @@ class AdsData {
 
   factory AdsData.fromJson(Map<String, dynamic> json) {
     return AdsData(
-      currentPage: json['current_page'] as int,
-      data: (json['data'] as List<dynamic>)
-          .map((e) => Advertisement.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      lastPage: json['last_page'] as int,
-      perPage: json['per_page'] as int,
-      total: json['total'] as int,
+      currentPage: int.tryParse(json['current_page']?.toString() ?? '') ?? 1,
+      data: json['data'] is List
+          ? (json['data'] as List<dynamic>)
+              .map((e) => Advertisement.fromJson(e as Map<String, dynamic>))
+              .toList()
+          : [],
+      lastPage: int.tryParse(json['last_page']?.toString() ?? '') ?? 1,
+      perPage: int.tryParse(json['per_page']?.toString() ?? '') ?? 10,
+      total: int.tryParse(json['total']?.toString() ?? '') ?? 0,
     );
   }
 }
 
 class Advertisement {
   final int id;
-  final String title;
-  final String subtitle;
-  final String? bgColor;
   final String? imageUrl;
-  final Coupon? coupon;
+  final String? link;
 
   const Advertisement({
     required this.id,
-    required this.title,
-    required this.subtitle,
-    this.bgColor,
     this.imageUrl,
-    this.coupon,
+    this.link,
   });
 
   factory Advertisement.fromJson(Map<String, dynamic> json) {
     return Advertisement(
-      id: json['id'] as int,
-      title: json['title']?.toString() ?? '',
-      subtitle: json['subtitle']?.toString() ?? '',
-      bgColor: json['bg_color'] as String?,
-      imageUrl: json['image_url'] as String?,
-      coupon: json['coupon'] != null
-          ? Coupon.fromJson(json['coupon'] as Map<String, dynamic>)
-          : null,
-    );
-  }
-}
-
-class Coupon {
-  final int id;
-  final String code;
-  final int percent;
-
-  const Coupon({
-    required this.id,
-    required this.code,
-    required this.percent,
-  });
-
-  factory Coupon.fromJson(Map<String, dynamic> json) {
-    return Coupon(
-      id: json['id'] as int,
-      code: json['code'] as String,
-      percent: json['percent'] as int,
+      id: int.tryParse(json['id']?.toString() ?? '') ?? 0,
+      imageUrl: json['image_url']?.toString(),
+      link: json['link']?.toString(),
     );
   }
 }

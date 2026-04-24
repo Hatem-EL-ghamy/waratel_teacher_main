@@ -13,7 +13,8 @@ abstract class AppConstants {
 
   // ── Animation Durations ───────────────────────────────────
   static const Duration pageTransitionDuration = Duration(milliseconds: 250);
-  static const Duration pageTransitionReverseDuration = Duration(milliseconds: 200);
+  static const Duration pageTransitionReverseDuration =
+      Duration(milliseconds: 200);
   static const Duration fadeTransitionDuration = Duration(milliseconds: 350);
   static const Duration adAutoScrollDuration = Duration(seconds: 5);
   static const Duration adSlideAnimationDuration = Duration(milliseconds: 350);

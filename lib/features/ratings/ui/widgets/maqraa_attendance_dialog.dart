@@ -71,7 +71,10 @@ class _MaqraaAttendanceDialogState extends State<MaqraaAttendanceDialog> {
                   final student = widget.students[index];
                   bool isPresent = _attendance[student.id] ?? false;
                   return CheckboxListTile(
-                    title: Text(student.name ?? '${'student_label'.tr(context)} ${student.id}', style: TextStyle(fontSize: 14.sp)),
+                    title: Text(
+                        student.name ??
+                            '${'student_label'.tr(context)} ${student.id}',
+                        style: TextStyle(fontSize: 14.sp)),
                     value: isPresent,
                     activeColor: ColorsManager.primaryColor,
                     onChanged: (val) {
@@ -111,12 +114,15 @@ class _MaqraaAttendanceDialogState extends State<MaqraaAttendanceDialog> {
                 ),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () => widget.onSave(_attendance, _notesController.text),
+                    onPressed: () =>
+                        widget.onSave(_attendance, _notesController.text),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: ColorsManager.primaryColor,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.r)),
                     ),
-                    child: Text('save_and_end'.tr(context), style: TextStyle(color: Colors.white, fontSize: 13.sp)),
+                    child: Text('save_and_end'.tr(context),
+                        style: TextStyle(color: Colors.white, fontSize: 13.sp)),
                   ),
                 ),
               ],

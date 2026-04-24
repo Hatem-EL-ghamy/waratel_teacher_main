@@ -7,7 +7,8 @@ class RatingsApi {
 
   RatingsApi(this._dio);
 
-  Future<RatingResponse> getRatings({String type = 'call', int page = 1}) async {
+  Future<RatingResponse> getRatings(
+      {String type = 'call', int page = 1}) async {
     final response = await _dio.get(
       ApiConstants.teacherRatings,
       queryParameters: {

@@ -19,7 +19,7 @@ class RecordCubit extends Cubit<RecordState> {
       emit(RecordLoading());
       final prefs = await SharedPreferences.getInstance();
       final List<String>? sessionsJson = prefs.getStringList(_prefsKey);
-      
+
       if (sessionsJson != null) {
         _sessions = [];
         for (var sessionString in sessionsJson) {
@@ -31,7 +31,7 @@ class RecordCubit extends Cubit<RecordState> {
           }
         }
       }
-      
+
       emit(RecordLoaded(_sessions));
     } catch (e) {
       emit(RecordError('فشل تحميل السجلات: $e'));
@@ -44,12 +44,11 @@ class RecordCubit extends Cubit<RecordState> {
       if (!isClosed) {
         emit(RecordLoaded(List.from(_sessions))); // Emit new list reference
       }
-      
+
       final prefs = await SharedPreferences.getInstance();
-      final List<String> sessionsJson = _sessions
-          .map((e) => jsonEncode(e.toJson()))
-          .toList();
-      
+      final List<String> sessionsJson =
+          _sessions.map((e) => jsonEncode(e.toJson())).toList();
+
       await prefs.setStringList(_prefsKey, sessionsJson);
     } catch (e) {
       // print('Error saving session: $e');
@@ -59,12 +58,12 @@ class RecordCubit extends Cubit<RecordState> {
 
   void changeFilter(bool completed) {
     showCompletedCalls = completed;
-    // Filter logic can be implemented here if needed, 
+    // Filter logic can be implemented here if needed,
     // for now just updating the flag and re-emitting current sessions if loaded
     if (state is RecordLoaded) {
-       emit(RecordLoaded(_sessions));
+      emit(RecordLoaded(_sessions));
     } else {
-       emit(RecordFilterChangedState(showCompletedCalls));
+      emit(RecordFilterChangedState(showCompletedCalls));
     }
   }
 }

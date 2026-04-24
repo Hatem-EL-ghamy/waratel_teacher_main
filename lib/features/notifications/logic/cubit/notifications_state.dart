@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import '../../data/models/notifications_model.dart';
 
 @immutable
 abstract class NotificationsState {}
@@ -8,8 +9,9 @@ class NotificationsInitial extends NotificationsState {}
 class NotificationsLoading extends NotificationsState {}
 
 class NotificationsLoaded extends NotificationsState {
-  final List<dynamic> notifications; // Replace dynamic with actual model later
-  NotificationsLoaded(this.notifications);
+  final List<NotificationModel> notifications;
+  final int unreadCount;
+  NotificationsLoaded(this.notifications, this.unreadCount);
 }
 
 class NotificationsError extends NotificationsState {

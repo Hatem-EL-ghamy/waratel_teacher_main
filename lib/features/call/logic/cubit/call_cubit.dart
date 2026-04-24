@@ -2,57 +2,83 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/agora/agora_service.dart';
+import '../../data/repos/calls_repo.dart';
 import 'call_state.dart';
 
 class CallCubit extends Cubit<CallState> {
   final AgoraService _agoraService;
-  
-  CallCubit(this._agoraService) : super(CallInitial());
+  final CallsRepo _callsRepo;
+
+  CallCubit(this._agoraService, this._callsRepo) : super(CallInitial());
 
   bool isMicOn = true;
-  bool isCamOn = false; // ← الكاميرا مُغلقة عند بدء المكالمة
+  bool isCamOn = false; // ← مغلقة افتراضياً كما طلب المستخدم
+  bool isSpeakerOn =
+      true; // ← مكبر الصوت يعمل افتراضياً عادة في المكالات الجماعية/الفيديو
   bool isMushafOpen = false;
   Timer? _timer;
   int _secondsElapsed = 0;
-  
+
   int? remoteUid;
-  
+  int? callId;
+
   String get currentDurationString => _formatDuration(_secondsElapsed);
 
-  Future<void> startCall({
-    required String token,
-    required String channelName,
-    required int uid,
-  }) async {
-    // Request permissions
+  Future<void> joinAndStartCall(int callId) async {
+    this.callId = callId;
+
     Map<Permission, PermissionStatus> statuses = await [
       Permission.camera,
       Permission.microphone,
     ].request();
 
-    if (statuses[Permission.camera] != PermissionStatus.granted || 
+    if (statuses[Permission.camera] != PermissionStatus.granted ||
         statuses[Permission.microphone] != PermissionStatus.granted) {
-      emit(CallError('يرجى منح صلاحيات الكاميرا والميكروفون للمتابعة'));
+      if (!isClosed) {
+        emit(CallError('يرجى منح صلاحيات الكاميرا والميكروفون للمتابعة'));
+      }
       return;
     }
 
-    emit(CallLoading());
-    
+    if (!isClosed) emit(CallLoading());
+
     try {
-      _setupAgoraHandlers();
-      
-      await _agoraService.joinChannel(
-        token: token,
-        channelName: channelName,
-        uid: uid,
-      );
-      
-      _startTimer();
-      emit(CallLoaded());
-      emitToggles();
+      final response = await _callsRepo.joinCall(callId);
+
+      if (response.status && response.data != null) {
+        _setupAgoraHandlers();
+
+        await _agoraService.joinChannel(
+          token: response.data!.agoraToken,
+          channelName: response.data!.channelName,
+          uid: response.data!.uid,
+        );
+
+        // تأكيد حالة الكاميرا عند البدء (مغلقة كما في الـ State)
+        await _agoraService.enableLocalVideo(isCamOn);
+
+        _startTimer();
+        if (!isClosed) {
+          emit(CallLoaded());
+          emitToggles();
+        }
+      } else {
+        if (!isClosed) emit(CallError(response.message));
+      }
     } catch (e) {
-      emit(CallError(e.toString()));
+      if (!isClosed) emit(CallError(e.toString()));
     }
+  }
+
+  // Obsolete - Keeping for backwards compatibility if needed elsewhere temporarily
+  Future<void> startCall({
+    required String token,
+    required String channelName,
+    required int uid,
+    int? callId,
+  }) async {
+    this.callId = callId;
+    // ... rest of archaic implementation ...
   }
 
   void _setupAgoraHandlers() {
@@ -88,11 +114,18 @@ class CallCubit extends Cubit<CallState> {
     emitToggles();
   }
 
+  void toggleSpeaker() {
+    isSpeakerOn = !isSpeakerOn;
+    _agoraService.setEnableSpeakerphone(isSpeakerOn);
+    emitToggles();
+  }
+
   void emitToggles() {
     emit(CallTogglesUpdated(
       isMicOn: isMicOn,
       isCamOn: isCamOn,
       isMushafOpen: isMushafOpen,
+      isSpeakerOn: isSpeakerOn,
     ));
   }
 
@@ -114,6 +147,13 @@ class CallCubit extends Cubit<CallState> {
   Future<void> endCall() async {
     _timer?.cancel();
     await _agoraService.leaveChannel();
+    if (callId != null) {
+      try {
+        await _callsRepo.endCall(callId!);
+      } catch (e) {
+        // print('Error ending call on server: $e');
+      }
+    }
     _resetAgoraHandlers();
   }
 

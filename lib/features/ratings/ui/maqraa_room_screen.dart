@@ -11,6 +11,7 @@ import 'package:waratel_app/features/ratings/logic/cubit/ratings_cubit.dart';
 import 'package:waratel_app/features/ratings/data/models/session_model.dart';
 import 'package:waratel_app/features/localization/data/app_localizations.dart';
 import 'package:waratel_app/features/ratings/ui/widgets/maqraa_attendance_dialog.dart';
+import 'package:waratel_app/core/routing/routers.dart';
 
 class MaqraaRoomScreen extends StatefulWidget {
   final SessionItem session;
@@ -73,6 +74,10 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
       setState(() {
         _remoteUsers.remove(uid);
       });
+      // Auto-end session if all students leave
+      if (_remoteUsers.isEmpty) {
+        _showEndSessionDialog(context);
+      }
     };
   }
 
@@ -117,13 +122,7 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
   Widget build(BuildContext context) {
     return BlocListener<RatingsCubit, RatingsState>(
       listener: (context, state) {
-        if (state is RatingsSessionEnded) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text(state.message), backgroundColor: Colors.green),
-          );
-          Navigator.pop(context);
-        } else if (state is RatingsAttendanceLoaded) {
+        if (state is RatingsAttendanceLoaded) {
           setState(() {
             _attendanceData = state.attendance;
           });
@@ -263,18 +262,28 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
                     _buildControlBtn(
                       icon: _isMuted ? Icons.mic_off : Icons.mic,
                       color: Colors.white,
-                      bgColor:
-                          _isMuted ? Colors.red : Colors.white.withValues(alpha: 0.2),
+                      bgColor: _isMuted
+                          ? Colors.red
+                          : Colors.white.withValues(alpha: 0.2),
                       onTap: () {
                         setState(() => _isMuted = !_isMuted);
                         context.read<RatingsCubit>().toggleMic(_isMuted);
                       },
                     ),
                     _buildControlBtn(
+                      icon: Icons.menu_book,
+                      color: Colors.white,
+                      bgColor: Colors.white.withValues(alpha: 0.2),
+                      onTap: () {
+                        Navigator.pushNamed(context, Routes.quran);
+                      },
+                    ),
+                    _buildControlBtn(
                       icon: _isSpeakerOn ? Icons.volume_up : Icons.volume_off,
                       color: Colors.white,
-                      bgColor:
-                          _isSpeakerOn ? Colors.green : Colors.white.withValues(alpha: 0.2),
+                      bgColor: _isSpeakerOn
+                          ? Colors.green
+                          : Colors.white.withValues(alpha: 0.2),
                       onTap: () {
                         setState(() => _isSpeakerOn = !_isSpeakerOn);
                         _setSpeakerSafe(_isSpeakerOn);
@@ -358,13 +367,15 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
                 children: [
                   ..._attendanceData!.data.map((student) {
                     bool isOnline = _remoteUsers.contains(student.id);
-                    String name = student.name ?? '${'student_label'.tr(context)} ${student.id}';
+                    String name = student.name ??
+                        '${'student_label'.tr(context)} ${student.id}';
                     return ListTile(
                       leading: CircleAvatar(
                         backgroundColor: isOnline
                             ? Colors.green.withValues(alpha: 0.1)
                             : Colors.grey.withValues(alpha: 0.1),
-                        child: Text(name.isNotEmpty ? name.characters.first : '؟',
+                        child: Text(
+                            name.isNotEmpty ? name.characters.first : '؟',
                             style: TextStyle(
                                 color: isOnline ? Colors.green : Colors.grey)),
                       ),
@@ -469,6 +480,7 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
         sessionTitle: widget.session.title,
         onSave: (attendance, notes) {
           Navigator.pop(dialogContext);
+          Navigator.pop(context); // Close screen immediately
           context.read<RatingsCubit>().endMaqraaWithReport(
                 attendance: attendance,
                 notes: notes,
@@ -493,6 +505,7 @@ class _MaqraaRoomScreenState extends State<MaqraaRoomScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(dialogContext);
+              Navigator.pop(context); // Close screen immediately
               ratingsCubit.endMaqraa();
             },
             child: Text('end_session'.tr(context),

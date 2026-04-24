@@ -10,7 +10,8 @@ class ContactSettingsResponse {
   factory ContactSettingsResponse.fromJson(Map<String, dynamic> json) {
     return ContactSettingsResponse(
       status: json['status'] ?? false,
-      data: ContactSettingsData.fromJson(json['data'] ?? {}),
+      data: ContactSettingsData.fromJson(
+          (json['data'] is Map<String, dynamic>) ? json['data'] : {}),
     );
   }
 }

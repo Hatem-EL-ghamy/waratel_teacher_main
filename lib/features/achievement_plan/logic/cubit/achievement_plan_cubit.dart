@@ -19,13 +19,13 @@ class AchievementPlanCubit extends Cubit<AchievementPlanState> {
       emit(AchievementPlanLoading());
       final prefs = await SharedPreferences.getInstance();
       final String? prefsJson = prefs.getString(_prefsKey);
-      
+
       if (prefsJson != null) {
         final Map<String, dynamic> json = jsonDecode(prefsJson);
         _currentPreferences = TeacherPreferences.fromJson(json);
         _workHours = _currentPreferences.workHoursPerWeek;
       }
-      
+
       emit(AchievementPlanLoaded(_currentPreferences));
     } catch (e) {
       emit(AchievementPlanError('فشل تحميل التفضيلات: $e'));
@@ -33,7 +33,8 @@ class AchievementPlanCubit extends Cubit<AchievementPlanState> {
   }
 
   void toggleLearningPath(String path) {
-    final Map<String, int> updated = Map.from(_currentPreferences.learningPaths);
+    final Map<String, int> updated =
+        Map.from(_currentPreferences.learningPaths);
     if (updated.containsKey(path)) {
       updated.remove(path);
     } else {
@@ -55,7 +56,8 @@ class AchievementPlanCubit extends Cubit<AchievementPlanState> {
   }
 
   void toggleStudentLevel(String level) {
-    final Map<String, int> updated = Map.from(_currentPreferences.studentLevels);
+    final Map<String, int> updated =
+        Map.from(_currentPreferences.studentLevels);
     if (updated.containsKey(level)) {
       updated.remove(level);
     } else {
@@ -67,12 +69,13 @@ class AchievementPlanCubit extends Cubit<AchievementPlanState> {
 
   void adjustPercentage(String category, String key, int delta) {
     Map<String, int> updated;
-    
+
     if (category == 'learningPaths') {
       updated = Map.from(_currentPreferences.learningPaths);
       if (updated.containsKey(key)) {
         updated[key] = (updated[key]! + delta).clamp(0, 100);
-        _currentPreferences = _currentPreferences.copyWith(learningPaths: updated);
+        _currentPreferences =
+            _currentPreferences.copyWith(learningPaths: updated);
       }
     } else if (category == 'ageGroups') {
       updated = Map.from(_currentPreferences.ageGroups);
@@ -84,10 +87,11 @@ class AchievementPlanCubit extends Cubit<AchievementPlanState> {
       updated = Map.from(_currentPreferences.studentLevels);
       if (updated.containsKey(key)) {
         updated[key] = (updated[key]! + delta).clamp(0, 100);
-        _currentPreferences = _currentPreferences.copyWith(studentLevels: updated);
+        _currentPreferences =
+            _currentPreferences.copyWith(studentLevels: updated);
       }
     }
-    
+
     emit(AchievementPlanLoaded(_currentPreferences));
   }
 
@@ -103,7 +107,7 @@ class AchievementPlanCubit extends Cubit<AchievementPlanState> {
       final prefs = await SharedPreferences.getInstance();
       final String prefsJson = jsonEncode(_currentPreferences.toJson());
       await prefs.setString(_prefsKey, prefsJson);
-      
+
       emit(AchievementPlanSuccess('تم حفظ التفضيلات بنجاح'));
       // Return to loaded state after showing success
       await Future.delayed(const Duration(seconds: 1));

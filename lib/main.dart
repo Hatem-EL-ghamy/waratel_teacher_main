@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:waratel_app/waratel_app.dart';
 import 'package:waratel_app/core/di/dependency_injection.dart';
 import 'package:waratel_app/core/cache/shared_preferences.dart';
+import 'package:waratel_app/core/notifications/local_notification_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// نقطة البداية الرئيسية للتطبيق
 void main() async {
@@ -27,6 +29,14 @@ void main() async {
   // التأكد من تهيئة Flutter
   WidgetsFlutterBinding.ensureInitialized();
   debugPrint('✅ [APP START] WidgetsFlutterBinding initialized');
+
+  // تحميل ملفات البيئة
+  await dotenv.load(fileName: ".env");
+  debugPrint('✅ [APP START] Environment variables loaded');
+
+  // تهيئة الإشعارات المحلية
+  await LocalNotificationService.initialize();
+  debugPrint('✅ [APP START] LocalNotificationService initialized');
 
   // ── تأمين الاتجاه عمودياً (Portrait) فقط ─────────────────
   await SystemChrome.setPreferredOrientations([

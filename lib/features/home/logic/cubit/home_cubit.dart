@@ -2,21 +2,21 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:waratel_app/features/home/data/repos/home_repo.dart';
 import 'package:waratel_app/features/home/logic/cubit/home_state.dart';
-import 'package:waratel_app/features/bookings/data/models/booking_model.dart';
-import 'package:waratel_app/features/bookings/data/repos/bookings_repo.dart';
+import 'package:waratel_app/features/bookings/data/models/booking_model.dart'; // Contains BookingModel & SoonResponse
+
 import 'package:waratel_app/features/ratings/data/repos/ratings_repo.dart';
 import 'package:waratel_app/features/call/data/models/call_model.dart';
 import 'package:waratel_app/features/call/data/repos/calls_repo.dart';
 
+/// HomeCubit — manages Home screen state only.
+/// Follows SRP: does NOT cancel, delete or modify bookings.
 class HomeCubit extends Cubit<HomeState> {
   final HomeRepo _homeRepo;
-  final BookingsRepo _bookingsRepo;
   final RatingsRepo _ratingsRepo;
   final CallsRepo _callsRepo;
 
   HomeCubit(
     this._homeRepo,
-    this._bookingsRepo,
     this._ratingsRepo,
     this._callsRepo,
   ) : super(HomeInitial());
@@ -26,7 +26,7 @@ class HomeCubit extends Cubit<HomeState> {
 
   Future<void> getInitialOnlineStatus() async {
     isOnline = await _homeRepo.getLocalOnlineStatus();
-    emit(HomeInitial());
+    if (!isClosed) emit(HomeOnlineStatusLoaded(isOnline));
   }
 
   Future<void> getAverageRating() async {
@@ -34,7 +34,7 @@ class HomeCubit extends Cubit<HomeState> {
       final response = await _ratingsRepo.getRatings(type: 'call');
       if (response.status) {
         averageRating = response.data.summary.averageRating.toDouble();
-        emit(HomeInitial()); // Trigger rebuild for watching widgets
+        if (!isClosed) emit(HomeOnlineStatusLoaded(isOnline));
       }
     } catch (e) {
       debugPrint('❌ [HOME CUBIT] Error fetching average rating: $e');
@@ -42,84 +42,79 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   Future<void> toggleOnline() async {
-    emit(ToggleOnlineLoading());
+    if (!isClosed) emit(ToggleOnlineLoading());
     try {
       final response = await _homeRepo.toggleOnline();
       isOnline = response.data.isOnline;
-      emit(ToggleOnlineSuccess(isOnline, response.message));
+      if (!isClosed) emit(ToggleOnlineSuccess(isOnline, response.message));
     } catch (e) {
-      emit(ToggleOnlineError(e.toString()));
+      if (!isClosed) emit(ToggleOnlineError(e.toString()));
     }
   }
 
   BookingModel? soonBooking;
 
-  Future<void> loadSoon({int retryCount = 0}) async {
-    // Prevent infinite recursion
-    if (retryCount > 2) {
-      emit(HomeSoonLoaded(null));
-      return;
-    }
+  Future<void> loadSoon() async {
+    if (isClosed) return;
+    if (!isClosed) emit(HomeSoonLoading());
 
-    emit(HomeSoonLoading());
-    
-    // Only fetch auxiliary data on the initial load, not on retries
-    if (retryCount == 0) {
-      getAverageRating(); 
-      loadRecentCalls(); 
-    }
+    // Fire background loads (not awaited)
+    _safeBackground(getAverageRating);
+    _safeBackground(loadRecentCalls);
+
     try {
-      final response = await _homeRepo.getSoon().timeout(const Duration(seconds: 10));
-      
-      if (response is Map<String, dynamic> && response['status'] == true && response['data'] != null) {
-        final Map<String, dynamic> data = response['data'] as Map<String, dynamic>;
-        
-        // Defensive check: ensure required fields for BookingModel exist to avoid early crashes
-        if (data['date'] == null || data['start_time'] == null || data['student'] == null) {
-          soonBooking = null;
-          emit(HomeSoonLoaded(null));
-          return;
-        }
+      final response = await _homeRepo.getSoon();
 
-        final booking = BookingModel.fromJson(data);
-        
-        // Auto-expiry logic: if midway point is passed, cancel the slot
-        bool expired = false;
-        try {
-          expired = booking.isExpiredMidway;
-        } catch (e) {
-          // silent
-        }
-
-        if (expired) {
-          await _bookingsRepo.cancelSlot(booking.slotId);
-          // Wait a bit before retrying to allow server state to stabilize
-          await Future.delayed(const Duration(milliseconds: 500));
-          return loadSoon(retryCount: retryCount + 1); 
-        }
-        
-        soonBooking = booking;
-        emit(HomeSoonLoaded(soonBooking));
-      } else {
+      if (response == null) {
         soonBooking = null;
-        emit(HomeSoonLoaded(null));
+        if (!isClosed) emit(HomeSoonLoaded(null));
+        return;
       }
+
+      // Parse using the correct SoonResponse model
+      final soonResponse = SoonResponse.fromJson(
+          response is Map<String, dynamic> ? response : {});
+
+      final booking = soonResponse.booking;
+
+      if (booking == null) {
+        soonBooking = null;
+        if (!isClosed) emit(HomeSoonLoaded(null));
+        return;
+      }
+
+      // If the session has already ended, hide it — do NOT cancel it.
+      final now = DateTime.now();
+      if (now.isAfter(booking.endDateTime)) {
+        soonBooking = null;
+        if (!isClosed) emit(HomeSoonLoaded(null));
+        return;
+      }
+
+      soonBooking = booking;
+      if (!isClosed) emit(HomeSoonLoaded(soonBooking));
     } catch (e) {
       debugPrint('❌ [HOME CUBIT] Error loading soon booking: $e');
-      emit(HomeSoonError(e.toString()));
+      if (!isClosed) emit(HomeSoonError(e.toString()));
     }
   }
 
-  // ── Recent Calls ──────────────────────────────────────────────────────────
+  void _safeBackground(Future<void> Function() fn) {
+    fn().catchError((e) {
+      debugPrint('❌ [HOME CUBIT] Background task error: $e');
+    });
+  }
+
+  // ── Recent Calls ──────────────────────────────────────────────
   List<CallModel> recentCalls = [];
 
   Future<void> loadRecentCalls() async {
+    if (isClosed) return;
     try {
       final response = await _callsRepo.getCalls(page: 1);
       if (response.status) {
-        // Take first 10 for the home screen
         recentCalls = response.data.data.take(10).toList();
-        emit(HomeRecentCallsUpdated());
+        if (!isClosed) emit(HomeRecentCallsUpdated());
       }
     } catch (e) {
       debugPrint('❌ [HOME CUBIT] Error loading recent calls: $e');
@@ -129,15 +124,15 @@ class HomeCubit extends Cubit<HomeState> {
   void addCall(CallModel call) {
     recentCalls.insert(0, call);
     if (recentCalls.length > 10) recentCalls.removeLast();
-    emit(HomeRecentCallsUpdated());
+    if (!isClosed) emit(HomeRecentCallsUpdated());
   }
 
-  // ── Navigation ────────────────────────────────────────────────────────────
+  // ── Navigation ────────────────────────────────────────────────
   int currentIndex = 0;
 
   void changeBottomNav(int index) {
-    if (currentIndex == index) return; // skip redundant emit
+    if (currentIndex == index) return;
     currentIndex = index;
-    emit(HomeChangeBottomNavState());
+    if (!isClosed) emit(HomeChangeBottomNavState());
   }
 }

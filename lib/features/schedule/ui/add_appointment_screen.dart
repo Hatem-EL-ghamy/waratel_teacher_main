@@ -20,39 +20,18 @@ class AddAppointmentScreen extends StatefulWidget {
 
 class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
   DateTime selectedDate = DateTime.now();
-  final Set<int> selectedTimeSlotIndices = {};
+  // Selected time slots for the day
+  final List<Map<String, String>> selectedTimeSlots = [];
 
-  // Time slots: 30 min intervals from 04:00 to 23:30
-  final List<Map<String, String>> allTimeSlots = _generateTimeSlots();
-
-  static List<Map<String, String>> _generateTimeSlots() {
-    final slots = <Map<String, String>>[];
-    for (int hour = 4; hour < 24; hour++) {
-      slots.add({
-        'start': '${hour.toString().padLeft(2, '0')}:00',
-        'end': '${hour.toString().padLeft(2, '0')}:30',
-      });
-      slots.add({
-        'start': '${hour.toString().padLeft(2, '0')}:30',
-        'end': '${(hour + 1).toString().padLeft(2, '0')}:00',
-      });
-    }
-    return slots;
-  }
-
-  // Group slots by period for display
-  List<Map<String, dynamic>> periodGroups(BuildContext context) => [
-        {'label': 'period_morning_1'.tr(context), 'icon': Icons.wb_sunny, 'color': Colors.amber, 'startHour': 4, 'endHour': 8},
-        {'label': 'period_morning_2'.tr(context), 'icon': Icons.wb_sunny, 'color': Colors.amber, 'startHour': 8, 'endHour': 12},
-        {'label': 'period_afternoon'.tr(context), 'icon': Icons.wb_sunny, 'color': Colors.orange, 'startHour': 12, 'endHour': 16},
-        {'label': 'period_evening_1'.tr(context), 'icon': Icons.cloud, 'color': Colors.blue, 'startHour': 16, 'endHour': 20},
-        {'label': 'period_evening_2'.tr(context), 'icon': Icons.nightlight_round, 'color': ColorsManager.primaryColor, 'startHour': 20, 'endHour': 24},
-      ];
+  // Current picker values
+  int pickedHour = 10;
+  int pickedMinute = 0;
+  String pickedPeriod = 'am';
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => getIt<ScheduleCubit>(),
+    return BlocProvider.value(
+      value: getIt<ScheduleCubit>(),
       child: BlocConsumer<ScheduleCubit, ScheduleState>(
         listener: (context, state) {
           if (state is AddSlotsSuccess) {
@@ -97,39 +76,8 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
               child: Column(
                 children: [
                   // Warning/Info Cards
-                  InfoCard(
-                    backgroundColor: const Color(0xFFFFF9E6),
-                    child: Row(
-                      children: [
-                        Expanded(
-                            child: Text(
-                                'schedule_warning_1'.tr(context),
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13.sp))),
-                        SizedBox(width: 8.w),
-                        Icon(Icons.flash_on, color: Colors.amber, size: 24.sp),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 12.h),
-                  InfoCard(
-                    backgroundColor: const Color(0xFFFFF9E6),
-                    child: Row(
-                      children: [
-                        Expanded(
-                            child: Text(
-                                'schedule_warning_2'.tr(context),
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13.sp))),
-                        SizedBox(width: 8.w),
-                        Icon(Icons.flash_on, color: Colors.amber, size: 24.sp),
-                      ],
-                    ),
-                  ),
+                  _buildHeaderInfo(context),
+
                   SizedBox(height: 25.h),
 
                   // Date Picker
@@ -141,88 +89,29 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                   ),
                   SizedBox(height: 10.h),
                   _buildDateSelector(context),
-                  SizedBox(height: 25.h),
 
-                  // Time Periods
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Text('select_time_periods'.tr(context),
-                        style: TextStyle(
-                            fontSize: 16.sp, fontWeight: FontWeight.bold)),
-                  ),
-                  SizedBox(height: 8.h),
-                  Text(
-                    'period_instruction'.tr(context),
-                    style: TextStyle(fontSize: 12.sp, color: Colors.grey),
-                  ),
-                  SizedBox(height: 15.h),
+                  SizedBox(height: 30.h),
 
-                  // Expandable period groups
-                  ...periodGroups(context).map((group) =>
-                      _buildPeriodGroup(context, group)),
+                  // New Time Picker Section
+                  _buildTimePickerSection(context),
 
-                  SizedBox(height: 20.h),
+                  SizedBox(height: 30.h),
 
-                  // Selected count
-                  if (selectedTimeSlotIndices.isNotEmpty)
-                    Container(
-                      padding: EdgeInsets.all(12.w),
-                      decoration: BoxDecoration(
-                        color: ColorsManager.primaryColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(10.r),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.check_circle,
-                              color: ColorsManager.primaryColor, size: 20.sp),
-                          SizedBox(width: 8.w),
-                          Text(
-                            'selected_appointments_count'.tr(context).replaceFirst('%s', '${selectedTimeSlotIndices.length}'),
-                            style: TextStyle(
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.bold,
-                              color: ColorsManager.primaryColor,
-                            ),
-                          ),
-                        ],
-                      ),
+                  // Selected Slots List
+                  if (selectedTimeSlots.isNotEmpty) ...[
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text('المواعيد المختارة',
+                          style: TextStyle(
+                              fontSize: 16.sp, fontWeight: FontWeight.bold)),
                     ),
-
-                  SizedBox(height: 20.h),
+                    SizedBox(height: 10.h),
+                    _buildSelectedSlotsList(context),
+                    SizedBox(height: 30.h),
+                  ],
 
                   // Submit Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50.h,
-                    child: ElevatedButton(
-                      onPressed: state is AddSlotsLoading ||
-                              selectedTimeSlotIndices.isEmpty
-                          ? null
-                          : () => _submitSlots(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: ColorsManager.primaryColor,
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor: Colors.grey.shade300,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(25.r)),
-                        elevation: 2,
-                      ),
-                      child: state is AddSlotsLoading
-                          ? SizedBox(
-                              width: 24.w,
-                              height: 24.w,
-                              child: const CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : Text('save_appointments'.tr(context),
-                              style: TextStyle(
-                                  fontSize: 16.sp,
-                                  fontWeight: FontWeight.bold)),
-                    ),
-                  ),
+                  _buildSubmitButton(context, state),
                   SizedBox(height: 20.h),
                 ],
               ),
@@ -233,9 +122,346 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     );
   }
 
+  Widget _buildHeaderInfo(BuildContext context) {
+    return Column(
+      children: [
+        InfoCard(
+          backgroundColor: const Color(0xFFFFF9E6),
+          child: Row(
+            children: [
+              Expanded(
+                  child: Text('schedule_warning_1'.tr(context),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 13.sp))),
+              SizedBox(width: 8.w),
+              Icon(Icons.flash_on, color: Colors.amber, size: 24.sp),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTimePickerSection(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(20.w),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        children: [
+          Text(
+            'حدد وقت الموعد (كل موعد 30 دقيقة)',
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.bold,
+              color: ColorsManager.primaryColor,
+            ),
+          ),
+          SizedBox(height: 20.h),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Hour
+              _buildPickerColumn(
+                context,
+                items: List.generate(
+                    12, (i) => (i + 1).toString().padLeft(2, '0')),
+                value: pickedHour.toString().padLeft(2, '0'),
+                label: 'ساعة',
+                onChanged: (val) => setState(() => pickedHour = int.parse(val)),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 25.h),
+                child: Text(':',
+                    style: TextStyle(
+                        fontSize: 24.sp, fontWeight: FontWeight.bold)),
+              ),
+              // Minute
+              _buildPickerColumn(
+                context,
+                items: List.generate(60, (i) => i.toString().padLeft(2, '0')),
+                value: pickedMinute.toString().padLeft(2, '0'),
+                label: 'دقيقة',
+                onChanged: (val) =>
+                    setState(() => pickedMinute = int.parse(val)),
+              ),
+              SizedBox(width: 20.w),
+              // AM/PM Toggle with Icons
+              _buildPeriodToggle(context),
+            ],
+          ),
+          SizedBox(height: 25.h),
+          ElevatedButton.icon(
+            onPressed: () {
+              _addCurrentSelection();
+            },
+            icon: const Icon(Icons.add),
+            label: const Text('إضافة هذا الموعد'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ColorsManager.primaryColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15.r)),
+              padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 12.h),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPickerColumn(
+    BuildContext context, {
+    required List<String> items,
+    required String value,
+    required String label,
+    required Function(String) onChanged,
+  }) {
+    return Column(
+      children: [
+        Text(label, style: TextStyle(fontSize: 12.sp, color: Colors.grey)),
+        SizedBox(height: 8.h),
+        Container(
+          height: 120.h,
+          width: 60.w,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: ListWheelScrollView.useDelegate(
+            itemExtent: 40.h,
+            physics: const FixedExtentScrollPhysics(),
+            onSelectedItemChanged: (index) => onChanged(items[index]),
+            childDelegate: ListWheelChildBuilderDelegate(
+              childCount: items.length,
+              builder: (context, index) {
+                final isSelected = items[index] == value;
+                return Center(
+                  child: Text(
+                    items[index],
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.normal,
+                      color: isSelected
+                          ? ColorsManager.primaryColor
+                          : Colors.black54,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPeriodToggle(BuildContext context) {
+    return Column(
+      children: [
+        Text('الفترة', style: TextStyle(fontSize: 12.sp, color: Colors.grey)),
+        SizedBox(height: 8.h),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: Column(
+            children: [
+              _buildPeriodOption(
+                context,
+                label: 'صباحاً',
+                value: 'am',
+                icon: Icons.wb_sunny,
+                iconColor: Colors.amber,
+              ),
+              Container(height: 1, width: 60.w, color: Colors.grey.shade200),
+              _buildPeriodOption(
+                context,
+                label: 'مساءً',
+                value: 'pm',
+                icon: Icons.nightlight_round,
+                iconColor: ColorsManager.primaryColor,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPeriodOption(
+    BuildContext context, {
+    required String label,
+    required String value,
+    required IconData icon,
+    required Color iconColor,
+  }) {
+    final isSelected = pickedPeriod == value;
+    return GestureDetector(
+      onTap: () => setState(() => pickedPeriod = value),
+      child: Container(
+        width: 80.w,
+        padding: EdgeInsets.symmetric(vertical: 12.h),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? ColorsManager.primaryColor.withValues(alpha: 0.1)
+              : Colors.transparent,
+          borderRadius: value == 'am'
+              ? BorderRadius.vertical(top: Radius.circular(12.r))
+              : BorderRadius.vertical(bottom: Radius.circular(12.r)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon,
+                color: isSelected ? iconColor : Colors.grey, size: 20.sp),
+            SizedBox(height: 4.h),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12.sp,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? ColorsManager.primaryColor : Colors.grey,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSelectedSlotsList(BuildContext context) {
+    return Wrap(
+      spacing: 10.w,
+      runSpacing: 10.h,
+      children: selectedTimeSlots.map((slot) {
+        return Container(
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+          decoration: BoxDecoration(
+            color: ColorsManager.primaryColor,
+            borderRadius: BorderRadius.circular(10.r),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '${_formatTimeFrom24(context, slot['start_time']!)} - ${_formatTimeFrom24(context, slot['end_time']!)}',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w600),
+              ),
+              SizedBox(width: 8.w),
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    selectedTimeSlots.remove(slot);
+                  });
+                },
+                child: Icon(Icons.cancel, color: Colors.white70, size: 18.sp),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildSubmitButton(BuildContext context, ScheduleState state) {
+    return SizedBox(
+      width: double.infinity,
+      height: 55.h,
+      child: ElevatedButton(
+        onPressed: state is AddSlotsLoading || selectedTimeSlots.isEmpty
+            ? null
+            : () => _submitSlots(context),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: ColorsManager.primaryColor,
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: Colors.grey.shade300,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.r)),
+          elevation: 2,
+        ),
+        child: state is AddSlotsLoading
+            ? SizedBox(
+                width: 24.w,
+                height: 24.w,
+                child: const CircularProgressIndicator(
+                    color: Colors.white, strokeWidth: 2),
+              )
+            : Text(
+                'save_appointments'.tr(context),
+                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+              ),
+      ),
+    );
+  }
+
+  void _addCurrentSelection() {
+    // Convert current pick to 24h format
+    int h24 = pickedHour;
+    if (pickedPeriod == 'pm' && h24 < 12) h24 += 12;
+    if (pickedPeriod == 'am' && h24 == 12) h24 = 0;
+
+    final String startTime =
+        '${h24.toString().padLeft(2, '0')}:${pickedMinute.toString().padLeft(2, '0')}';
+
+    // Default 30 min duration
+    DateTime startDT = DateTime(2000, 1, 1, h24, pickedMinute);
+    DateTime endDT = startDT.add(const Duration(minutes: 30));
+    final String endTime =
+        '${endDT.hour.toString().padLeft(2, '0')}:${endDT.minute.toString().padLeft(2, '0')}';
+
+    // Check if duplicate
+    final isDuplicate =
+        selectedTimeSlots.any((s) => s['start_time'] == startTime);
+    if (isDuplicate) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('هذا الوقت مضاف بالفعل'),
+            backgroundColor: Colors.orange),
+      );
+      return;
+    }
+
+    setState(() {
+      selectedTimeSlots.add({
+        'start_time': startTime,
+        'end_time': endTime,
+      });
+      // Sort by start time
+      selectedTimeSlots
+          .sort((a, b) => a['start_time']!.compareTo(b['start_time']!));
+    });
+  }
+
+  String _formatTimeFrom24(BuildContext context, String time24) {
+    try {
+      final parts = time24.split(':');
+      int h = int.parse(parts[0]);
+      final m = parts[1];
+      final p = h >= 12 ? 'pm'.tr(context) : 'am'.tr(context);
+      if (h > 12) h -= 12;
+      if (h == 0) h = 12;
+      return '$h:$m $p';
+    } catch (_) {
+      return time24;
+    }
+  }
+
   Widget _buildDateSelector(BuildContext context) {
-    final lang = context.read<LocaleCubit>().state is ChangeLocaleState 
-        ? (context.read<LocaleCubit>().state as ChangeLocaleState).locale.languageCode 
+    final lang = context.read<LocaleCubit>().state is ChangeLocaleState
+        ? (context.read<LocaleCubit>().state as ChangeLocaleState)
+            .locale
+            .languageCode
         : 'ar';
     final dateStr = DateFormat('EEEE، d MMMM yyyy', lang).format(selectedDate);
     return GestureDetector(
@@ -250,7 +476,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
         if (picked != null) {
           setState(() {
             selectedDate = picked;
-            selectedTimeSlotIndices.clear();
+            selectedTimeSlots.clear();
           });
         }
       },
@@ -281,177 +507,13 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     );
   }
 
-  Widget _buildPeriodGroup(BuildContext context, Map<String, dynamic> group) {
-    final int startHour = group['startHour'];
-    final int endHour = group['endHour'];
-
-    // Get indices of slots in this period
-    final periodSlotIndices = <int>[];
-    for (int i = 0; i < allTimeSlots.length; i++) {
-      final slotHour = int.parse(allTimeSlots[i]['start']!.split(':')[0]);
-      if (slotHour >= startHour && slotHour < endHour) {
-        periodSlotIndices.add(i);
-      }
-    }
-
-    final selectedInPeriod =
-        periodSlotIndices.where((i) => selectedTimeSlotIndices.contains(i));
-    final allSelected = selectedInPeriod.length == periodSlotIndices.length;
-
-    return Container(
-      margin: EdgeInsets.only(bottom: 10.h),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade200),
-        borderRadius: BorderRadius.circular(12.r),
-      ),
-      child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          tilePadding: EdgeInsets.symmetric(horizontal: 16.w),
-          title: Row(
-            children: [
-              Icon(group['icon'], color: group['color'], size: 24.sp),
-              SizedBox(width: 10.w),
-              Text(
-                group['label'],
-                style:
-                    TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
-              ),
-              const Spacer(),
-              if (selectedInPeriod.isNotEmpty)
-                Container(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-                  decoration: BoxDecoration(
-                    color: ColorsManager.primaryColor,
-                    borderRadius: BorderRadius.circular(10.r),
-                  ),
-                  child: Text(
-                    '${selectedInPeriod.length}',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 11.sp,
-                        fontWeight: FontWeight.bold),
-                  ),
-                ),
-            ],
-          ),
-          children: [
-            // Select all toggle
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w),
-              child: Row(
-                children: [
-                  TextButton.icon(
-                    onPressed: () {
-                      setState(() {
-                        if (allSelected) {
-                          selectedTimeSlotIndices
-                              .removeAll(periodSlotIndices);
-                        } else {
-                          selectedTimeSlotIndices.addAll(periodSlotIndices);
-                        }
-                      });
-                    },
-                    icon: Icon(
-                      allSelected
-                          ? Icons.check_box
-                          : Icons.check_box_outline_blank,
-                      color: ColorsManager.primaryColor,
-                      size: 20.sp,
-                    ),
-                    label: Text(
-                      allSelected ? 'deselect_all'.tr(context) : 'select_all'.tr(context),
-                      style: TextStyle(
-                          fontSize: 12.sp, color: ColorsManager.primaryColor),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Individual slots
-            Padding(
-              padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 12.h),
-              child: Wrap(
-                spacing: 8.w,
-                runSpacing: 8.h,
-                children: periodSlotIndices.map((idx) {
-                  final slot = allTimeSlots[idx];
-                  final isSelected = selectedTimeSlotIndices.contains(idx);
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        if (isSelected) {
-                          selectedTimeSlotIndices.remove(idx);
-                        } else {
-                          selectedTimeSlotIndices.add(idx);
-                        }
-                      });
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 10.w, vertical: 8.h),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? ColorsManager.primaryColor
-                            : Colors.grey.shade50,
-                        borderRadius: BorderRadius.circular(8.r),
-                        border: Border.all(
-                          color: isSelected
-                              ? ColorsManager.primaryColor
-                              : Colors.grey.shade300,
-                        ),
-                      ),
-                      child: Text(
-                        '${_formatTimeDisplay(context, slot['start']!)} - ${_formatTimeDisplay(context, slot['end']!)}',
-                        style: TextStyle(
-                          fontSize: 11.sp,
-                          fontWeight: FontWeight.w600,
-                          color: isSelected ? Colors.white : Colors.black87,
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _formatTimeDisplay(BuildContext context, String time) {
-    try {
-      final parts = time.split(':');
-      final hour = int.parse(parts[0]);
-      final minute = parts[1];
-      final period = hour >= 12 ? 'pm'.tr(context) : 'am'.tr(context);
-      final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
-      return '$displayHour:$minute $period';
-    } catch (_) {
-      return time;
-    }
-  }
-
   void _submitSlots(BuildContext context) {
-    // We MUST use 'en' locale here to send Western digits (2027-01-01) to the API
     final dateStr = DateFormat('yyyy-MM-dd', 'en').format(selectedDate);
-
-    // Build the slots array in the correct format the API expects:
-    // { "date": "2025-01-01", "slots": [{"start_time": "09:00", "end_time": "09:30"}, ...] }
-    final List<Map<String, String>> slotsPayload = selectedTimeSlotIndices
-        .map((idx) => {
-              'start_time': allTimeSlots[idx]['start']!,
-              'end_time': allTimeSlots[idx]['end']!,
-            })
-        .toList();
-
-    debugPrint('Submitting Slots: date=$dateStr slots=$slotsPayload');
+    debugPrint('Submitting Slots: date=$dateStr slots=$selectedTimeSlots');
 
     context.read<ScheduleCubit>().addSlots(
           date: dateStr,
-          slots: slotsPayload,
+          slots: selectedTimeSlots,
         );
   }
 }

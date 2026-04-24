@@ -9,101 +9,139 @@ class BookingStudent {
     this.photo,
   });
 
-  factory BookingStudent.fromJson(Map<String, dynamic> json) {
+  factory BookingStudent.fromJson(Map<String, dynamic>? json) {
+    if (json == null) return const BookingStudent(id: 0, name: '');
     return BookingStudent(
-      id: (json['id'] is int) ? json['id'] : int.tryParse(json['id'].toString()) ?? 0,
+      id: (json['id'] is int)
+          ? json['id']
+          : int.tryParse(json['id'].toString()) ?? 0,
       name: (json['name'] ?? '').toString(),
       photo: json['photo']?.toString(),
     );
   }
 }
 
-class BookingCallSession {
+class BookingCallDetails {
   final int id;
   final String status;
   final String channelName;
-  final bool canStartNow;
+  final bool? canStart; // from bookings list
+  final bool? canStartNow; // from soon endpoint
   final int duration;
 
-  const BookingCallSession({
+  const BookingCallDetails({
     required this.id,
     required this.status,
     required this.channelName,
-    required this.canStartNow,
-    required this.duration,
+    this.canStart,
+    this.canStartNow,
+    this.duration = 0,
   });
 
-  factory BookingCallSession.fromJson(Map<String, dynamic> json) {
-    return BookingCallSession(
-      id: (json['id'] is int) ? json['id'] : int.tryParse(json['id'].toString()) ?? 0,
+  factory BookingCallDetails.fromJson(Map<String, dynamic> json) {
+    return BookingCallDetails(
+      id: (json['id'] is int)
+          ? json['id']
+          : int.tryParse(json['id'].toString()) ?? 0,
       status: (json['status'] ?? '').toString(),
       channelName: (json['channel_name'] ?? '').toString(),
+      canStart: json['can_start'] == true,
       canStartNow: json['can_start_now'] == true,
-      duration: (json['duration'] is int) ? json['duration'] : int.tryParse(json['duration'].toString()) ?? 0,
+      duration: (json['duration'] is int)
+          ? json['duration']
+          : int.tryParse(json['duration'].toString()) ?? 0,
     );
   }
 }
 
 class BookingModel {
+  final int? bookingId;
   final int slotId;
   final String date;
   final String startTime;
   final String endTime;
   final String bookingStatus;
   final BookingStudent student;
-  final BookingCallSession? callSession;
+  final BookingCallDetails? callDetails;
   final dynamic rating;
+  final bool isPast;
 
   const BookingModel({
+    this.bookingId,
     required this.slotId,
     required this.date,
     required this.startTime,
     required this.endTime,
     required this.bookingStatus,
     required this.student,
-    this.callSession,
+    this.callDetails,
     this.rating,
+    this.isPast = false,
   });
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
     return BookingModel(
-      slotId: (json['slot_id'] is int) ? json['slot_id'] : int.tryParse(json['slot_id'].toString()) ?? 0,
+      bookingId: (json['booking_id'] != null)
+          ? (json['booking_id'] is int ? json['booking_id'] : int.tryParse(json['booking_id'].toString()))
+          : (json['id'] != null ? (json['id'] is int ? json['id'] : int.tryParse(json['id'].toString())) : null),
+      slotId: (json['slot_id'] is int)
+          ? json['slot_id']
+          : int.tryParse(json['slot_id'].toString()) ?? 0,
       date: (json['date'] ?? '').toString(),
       startTime: (json['start_time'] ?? '').toString(),
       endTime: (json['end_time'] ?? '').toString(),
-      bookingStatus: (json['booking_status'] ?? '').toString(),
-      student: BookingStudent.fromJson(json['student'] as Map<String, dynamic>),
-      callSession: json['call_session'] != null
-          ? BookingCallSession.fromJson(json['call_session'] as Map<String, dynamic>)
-          : null,
+      bookingStatus:
+          (json['status'] ?? json['booking_status'] ?? '').toString(),
+      isPast: json['is_past'] == true,
+      student:
+          BookingStudent.fromJson(json['student'] as Map<String, dynamic>?),
+      callDetails:
+          (json['call_details'] != null || json['call_session'] != null)
+              ? BookingCallDetails.fromJson((json['call_details'] ??
+                  json['call_session']) as Map<String, dynamic>)
+              : null,
       rating: json['rating'],
     );
   }
 
-  bool get canStart => callSession?.canStartNow == true || isWithinJoinWindow;
+  bool get canStart =>
+      callDetails?.canStart == true ||
+      callDetails?.canStartNow == true ||
+      isWithinJoinWindow;
 
-  DateTime get startDateTime => DateTime.parse('$date $startTime');
-  DateTime get endDateTime => DateTime.parse('$date $endTime');
+  DateTime get startDateTime {
+    try {
+      return DateTime.parse('$date $startTime');
+    } catch (_) {
+      return DateTime.now();
+    }
+  }
+
+  DateTime get endDateTime {
+    try {
+      return DateTime.parse('$date $endTime');
+    } catch (_) {
+      return DateTime.now();
+    }
+  }
 
   bool get isExpiredMidway {
     if (bookingStatus != 'scheduled') return false;
-    
+
     final now = DateTime.now();
     final midwayPoint = startDateTime.add(
       Duration(minutes: endDateTime.difference(startDateTime).inMinutes ~/ 2),
     );
-    
+
     return now.isAfter(midwayPoint);
   }
 
   bool get isWithinJoinWindow {
     if (bookingStatus == 'ongoing') return true;
     if (bookingStatus != 'scheduled') return false;
-    
+
     final now = DateTime.now();
     final difference = startDateTime.difference(now).inMinutes;
-    // Show button if it's 10 minutes before start or anytime after start (if status is still scheduled)
-    // But we should also check if it's NOT expired midway
     return difference <= 10 && !isExpiredMidway;
   }
 }
@@ -126,7 +164,9 @@ class BookingsPagination {
   factory BookingsPagination.fromJson(Map<String, dynamic> json) {
     return BookingsPagination(
       currentPage: int.tryParse(json['current_page'].toString()) ?? 1,
-      lastPage: int.tryParse(json['last_page'].toString()) ?? 1,
+      lastPage:
+          int.tryParse(json['total_pages'] ?? json['last_page']?.toString()) ??
+              1,
       total: int.tryParse(json['total'].toString()) ?? 0,
       perPage: int.tryParse(json['per_page'].toString()) ?? 15,
       nextPageUrl: json['next_page_url']?.toString(),
@@ -137,44 +177,59 @@ class BookingsPagination {
 class BookingsResponse {
   final bool status;
   final String message;
-  final List<BookingModel> bookings;
+  final List<BookingModel> upcoming;
+  final List<BookingModel> history;
   final BookingsPagination? pagination;
 
   const BookingsResponse({
     required this.status,
     required this.message,
-    required this.bookings,
+    required this.upcoming,
+    required this.history,
     this.pagination,
   });
 
   factory BookingsResponse.fromJson(Map<String, dynamic> json) {
-    final data = json['data'];
-    List<BookingModel> bookings = [];
+    final bool status = json['status'] == true;
+    final String message = (json['message'] ?? '').toString();
+
+    List<BookingModel> upcoming = [];
+    List<BookingModel> history = [];
     BookingsPagination? pagination;
 
-    if (data != null) {
-      if (data is Map<String, dynamic>) {
-        final dataList = data['data'];
-        if (dataList is List) {
-          bookings = dataList
-              .whereType<Map<String, dynamic>>()
-              .map((e) => BookingModel.fromJson(e))
-              .toList();
-        }
-        pagination = BookingsPagination.fromJson(data);
-      } else if (data is List) {
-        // Handle case where 'data' is a direct list of bookings
-        bookings = data
+    final data = json['data'];
+    if (data is Map<String, dynamic>) {
+      if (data['upcoming'] is List) {
+        upcoming = (data['upcoming'] as List)
             .whereType<Map<String, dynamic>>()
             .map((e) => BookingModel.fromJson(e))
             .toList();
       }
+      if (data['history'] is List) {
+        history = (data['history'] as List)
+            .whereType<Map<String, dynamic>>()
+            .map((e) => BookingModel.fromJson(e))
+            .toList();
+      }
+      if (data['pagination'] != null) {
+        pagination = BookingsPagination.fromJson(data['pagination']);
+      }
+
+      // Auto-move expired upcoming bookings to history
+      final now = DateTime.now();
+      final expiredUpcoming =
+          upcoming.where((b) => !b.endDateTime.isAfter(now)).toList();
+      if (expiredUpcoming.isNotEmpty) {
+        upcoming = upcoming.where((b) => b.endDateTime.isAfter(now)).toList();
+        history = [...expiredUpcoming, ...history];
+      }
     }
 
     return BookingsResponse(
-      status: json['status'] == true,
-      message: (json['message'] ?? '').toString(),
-      bookings: bookings,
+      status: status,
+      message: message,
+      upcoming: upcoming,
+      history: history,
       pagination: pagination,
     );
   }
@@ -201,12 +256,14 @@ class StartCallResponse {
   final String token;
   final String channel;
   final int uid;
+  final bool isRecording;
 
   const StartCallResponse({
     required this.status,
     required this.token,
     required this.channel,
     required this.uid,
+    required this.isRecording,
   });
 
   factory StartCallResponse.fromJson(Map<String, dynamic> json) {
@@ -215,7 +272,10 @@ class StartCallResponse {
       status: json['status'] == true,
       token: (data['token'] ?? '').toString(),
       channel: (data['channel'] ?? '').toString(),
-      uid: (data['uid'] is int) ? data['uid'] : int.tryParse(data['uid'].toString()) ?? 0,
+      uid: (data['uid'] is int)
+          ? data['uid']
+          : int.tryParse(data['uid'].toString()) ?? 0,
+      isRecording: data['is_recording'] == true,
     );
   }
 }

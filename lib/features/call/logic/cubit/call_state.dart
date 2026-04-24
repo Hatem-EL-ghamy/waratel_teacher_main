@@ -15,11 +15,13 @@ class CallTogglesUpdated extends CallState {
   final bool isMicOn;
   final bool isCamOn;
   final bool isMushafOpen;
+  final bool isSpeakerOn;
 
   CallTogglesUpdated({
     required this.isMicOn,
     required this.isCamOn,
     required this.isMushafOpen,
+    required this.isSpeakerOn,
   });
 }
 

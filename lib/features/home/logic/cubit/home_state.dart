@@ -5,6 +5,11 @@ abstract class HomeState {}
 
 class HomeInitial extends HomeState {}
 
+class HomeOnlineStatusLoaded extends HomeState {
+  final bool isOnline;
+  HomeOnlineStatusLoaded(this.isOnline);
+}
+
 class HomeChangeBottomNavState extends HomeState {}
 
 class HomeRecentCallsUpdated extends HomeState {}

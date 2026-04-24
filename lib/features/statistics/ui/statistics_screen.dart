@@ -7,8 +7,13 @@ import 'package:waratel_app/core/theming/colors.dart';
 import 'package:waratel_app/features/localization/data/app_localizations.dart';
 import 'package:waratel_app/features/call/data/models/call_model.dart';
 import 'package:waratel_app/features/ratings/data/models/rating_model.dart';
+import 'package:waratel_app/core/routing/routers.dart';
+import 'package:waratel_app/features/record/logic/cubit/record_cubit.dart';
+import 'package:waratel_app/features/record/logic/cubit/record_state.dart';
+import 'package:waratel_app/features/record/data/models/session_model.dart';
 import '../logic/cubit/statistics_cubit.dart';
 import '../logic/cubit/statistics_state.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class StatisticsScreen extends StatelessWidget {
   const StatisticsScreen({super.key});
@@ -126,7 +131,8 @@ class _StatisticsContent extends StatelessWidget {
                   children: [
                     _StatCard(
                       title: 'average_rating'.tr(context),
-                      value: ratingData.summary.averageRating.toStringAsFixed(1),
+                      value:
+                          ratingData.summary.averageRating.toStringAsFixed(1),
                       icon: Icons.star_rounded,
                       color: const Color(0xFFFFC107),
                     ),
@@ -191,7 +197,46 @@ class _StatisticsContent extends StatelessWidget {
                 (context, index) {
                   return Padding(
                     padding: EdgeInsets.only(bottom: 12.h),
-                    child: _CallHistoryCard(call: calls[index]),
+                    child: InkWell(
+                      onTap: () {
+                        // Find matching session in RecordCubit if available
+                        final recordCubit = getIt<RecordCubit>();
+                        final recordedSession = recordCubit.state
+                                is RecordLoaded
+                            ? (recordCubit.state as RecordLoaded)
+                                .sessions
+                                .firstWhere(
+                                  (s) =>
+                                      s.studentName ==
+                                          calls[index].studentName &&
+                                      s.date == calls[index].date,
+                                  orElse: () => SessionModel(
+                                    studentName: calls[index].studentName,
+                                    date: calls[index].date,
+                                    time: calls[index].time,
+                                    duration:
+                                        '${calls[index].durationMinutes} min',
+                                    trackName: 'private_call'.tr(context),
+                                    status: 'completed'.tr(context),
+                                    notes: '',
+                                    nextAssignment: '',
+                                    rating:
+                                        calls[index].rating?.toString() ?? '',
+                                    isPresent: true,
+                                  ),
+                                )
+                            : null;
+
+                        if (recordedSession != null) {
+                          Navigator.pushNamed(
+                            context,
+                            Routes.sessionDetails,
+                            arguments: recordedSession,
+                          );
+                        }
+                      },
+                      child: _CallHistoryCard(call: calls[index]),
+                    ),
                   );
                 },
                 childCount: calls.length,
@@ -433,7 +478,8 @@ class _ReviewCard extends StatelessWidget {
               CircleAvatar(
                 radius: 18.r,
                 backgroundImage: review.studentPhoto != null
-                    ? NetworkImage(review.studentPhoto!)
+                    ? CachedNetworkImageProvider(review.studentPhoto!)
+                        as ImageProvider
                     : null,
                 child: review.studentPhoto == null
                     ? Icon(Icons.person, size: 18.sp)

@@ -10,6 +10,7 @@ import '../../logic/cubit/home_state.dart';
 // Removed unused import
 import 'package:waratel_app/features/bookings/logic/cubit/bookings_cubit.dart';
 import 'package:waratel_app/features/bookings/logic/cubit/bookings_state.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class NextSessionCard extends StatefulWidget {
   const NextSessionCard({super.key});
@@ -40,9 +41,12 @@ class _NextSessionCardState extends State<NextSessionCard> {
   Widget build(BuildContext context) {
     return BlocBuilder<HomeCubit, HomeState>(
       buildWhen: (previous, current) =>
-          current is HomeSoonLoading || current is HomeSoonLoaded || current is HomeSoonError,
+          current is HomeSoonLoading ||
+          current is HomeSoonLoaded ||
+          current is HomeSoonError,
       builder: (context, state) {
-        if (state is HomeSoonLoading && context.read<HomeCubit>().soonBooking == null) {
+        if (state is HomeSoonLoading &&
+            context.read<HomeCubit>().soonBooking == null) {
           return Container(
             padding: EdgeInsets.all(20.w),
             decoration: BoxDecoration(
@@ -53,7 +57,8 @@ class _NextSessionCardState extends State<NextSessionCard> {
           );
         }
 
-        if (state is HomeSoonError && context.read<HomeCubit>().soonBooking == null) {
+        if (state is HomeSoonError &&
+            context.read<HomeCubit>().soonBooking == null) {
           return Center(
             child: TextButton.icon(
               onPressed: () => context.read<HomeCubit>().loadSoon(),
@@ -98,14 +103,16 @@ class _NextSessionCardState extends State<NextSessionCard> {
                   ),
                   if (booking.bookingStatus == 'scheduled')
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                       decoration: BoxDecoration(
                         color: ColorsManager.greenExtraLight,
                         borderRadius: BorderRadius.circular(20.r),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.timer_outlined, size: 14.sp, color: ColorsManager.primaryColor),
+                          Icon(Icons.timer_outlined,
+                              size: 14.sp, color: ColorsManager.primaryColor),
                           SizedBox(width: 4.w),
                           Text(
                             'upcoming_booking'.tr(context),
@@ -120,7 +127,8 @@ class _NextSessionCardState extends State<NextSessionCard> {
                     ),
                   if (booking.bookingStatus == 'ongoing')
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                       decoration: BoxDecoration(
                         color: Colors.red.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20.r),
@@ -147,11 +155,13 @@ class _NextSessionCardState extends State<NextSessionCard> {
                     width: 50.w,
                     height: 50.w,
                     decoration: BoxDecoration(
-                      color: ColorsManager.secondaryColor.withValues(alpha: 0.1),
+                      color:
+                          ColorsManager.secondaryColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12.r),
                       image: booking.student.photo != null
                           ? DecorationImage(
-                              image: NetworkImage(booking.student.photo!),
+                              image: CachedNetworkImageProvider(
+                                  booking.student.photo!) as ImageProvider,
                               fit: BoxFit.cover,
                             )
                           : null,
@@ -199,6 +209,9 @@ class _NextSessionCardState extends State<NextSessionCard> {
                     BlocConsumer<BookingsCubit, BookingsState>(
                       listener: (context, state) {
                         if (state is StartCallSuccess) {
+                          // Refresh home data immediately so the card disappears or status changes
+                          context.read<HomeCubit>().loadSoon();
+
                           Navigator.pushNamed(
                             context,
                             Routes.call,
@@ -207,6 +220,7 @@ class _NextSessionCardState extends State<NextSessionCard> {
                               'channelName': state.channel,
                               'uid': state.uid,
                               'studentName': state.studentName,
+                              'callId': state.callId,
                             },
                           );
                         }
@@ -217,7 +231,7 @@ class _NextSessionCardState extends State<NextSessionCard> {
                           onPressed: () {
                             context.read<BookingsCubit>().startCall(
                                   booking.slotId,
-                                  booking.callSession?.id ?? 0,
+                                  booking.callDetails?.id ?? 0,
                                   booking.student.name,
                                 );
                           },
@@ -271,7 +285,8 @@ class _EnterButton extends StatelessWidget {
               SizedBox(
                 width: 20.w,
                 height: 20.w,
-                child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                child: const CircularProgressIndicator(
+                    color: Colors.white, strokeWidth: 2),
               )
             else ...[
               Icon(Icons.login, color: Colors.white, size: 20.sp),

@@ -7,7 +7,7 @@ import 'package:waratel_app/features/ratings/data/repos/sessions_repo.dart';
 import 'package:intl/intl.dart';
 import 'package:waratel_app/features/ratings/data/models/session_model.dart';
 import '../../../record/data/models/session_model.dart' as record_model;
- 
+
 class RatingsCubit extends Cubit<RatingsState> {
   final SessionsRepo _sessionsRepo;
   final AgoraService _agoraService;
@@ -23,9 +23,9 @@ class RatingsCubit extends Cubit<RatingsState> {
     emit(RatingsLoading());
     try {
       _sessions = await _sessionsRepo.getMySessions();
-      
+
       // Determine if within active time (Simulated: Always active or logic based on business rules)
-      bool isActiveTime = true; 
+      bool isActiveTime = true;
       bool hasPermission = true;
 
       emit(RatingsLoaded(
@@ -45,7 +45,7 @@ class RatingsCubit extends Cubit<RatingsState> {
       Permission.microphone,
     ].request();
 
-    if (statuses[Permission.camera] != PermissionStatus.granted || 
+    if (statuses[Permission.camera] != PermissionStatus.granted ||
         statuses[Permission.microphone] != PermissionStatus.granted) {
       emit(RatingsError('يرجى منح صلاحيات الكاميرا والميكروفون للمتابعة'));
       return;
@@ -57,8 +57,9 @@ class RatingsCubit extends Cubit<RatingsState> {
       _activeSession = session;
 
       // Initialize and Join Agora
-      if (session.title.contains('فيديو')) { // Checking for video based on title or model if available
-         await _agoraService.joinChannel(
+      if (session.title.contains('فيديو')) {
+        // Checking for video based on title or model if available
+        await _agoraService.joinChannel(
           token: data.agoraToken,
           channelName: data.channelName,
           uid: data.uid,
@@ -82,15 +83,15 @@ class RatingsCubit extends Cubit<RatingsState> {
 
   Future<void> endMaqraa() async {
     if (_activeSession == null) return;
-    
+
     emit(RatingsLoading());
     try {
       await _sessionsRepo.endSession(_activeSession!.id);
       await _agoraService.leaveChannel();
-      
+
       final session = _activeSession!;
       _activeSession = null;
-      
+
       emit(RatingsSessionEnded(
         session: session,
         message: "تم إنهاء الجلسة بنجاح",
@@ -106,29 +107,31 @@ class RatingsCubit extends Cubit<RatingsState> {
     required String notes,
   }) async {
     if (_activeSession == null) return;
-    
+
     emit(RatingsLoading());
     try {
       final sessionItem = _activeSession!;
-      
+
       // 1. End on server
       await _sessionsRepo.endSession(sessionItem.id);
-      
+
       // 2. Leave Agora
       await _agoraService.leaveChannel();
-      
+
       // 3. Save to local RecordCubit for history
       final now = DateTime.now();
       int presentCount = attendance.values.where((v) => v).length;
-      
+
       final record = record_model.SessionModel(
         studentName: sessionItem.title, // Use title as name for group sessions
         date: DateFormat('yyyy-M-d').format(now),
         time: DateFormat.jm().format(now),
-        duration: '--:--', // Duration for group sessions not currently tracked 
+        duration: '--:--', // Duration for group sessions not currently tracked
         trackName: 'حلقة جماعية',
         status: 'مكتملة',
-        notes: notes.isNotEmpty ? notes : 'حضور: $presentCount/${attendance.length} من الطلاب',
+        notes: notes.isNotEmpty
+            ? notes
+            : 'حضور: $presentCount/${attendance.length} من الطلاب',
         nextAssignment: '',
         rating: 'ممتاز',
         isPresent: true,
@@ -136,12 +139,12 @@ class RatingsCubit extends Cubit<RatingsState> {
       _recordCubit.addSession(record);
 
       _activeSession = null;
-      
+
       emit(RatingsSessionEnded(
         session: sessionItem,
         message: "تم حفظ التحضير وإنهاء المقرأة بنجاح",
       ));
-      
+
       await checkStatus();
     } catch (e) {
       emit(RatingsError("فشل حفظ التقرير: ${e.toString()}"));

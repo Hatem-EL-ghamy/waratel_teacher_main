@@ -131,13 +131,17 @@ class ReviewItem {
     // Review structure might vary based on student object nesting
     // Assuming student object for name and photo based on bookings API
     final student = json['student'] as Map<String, dynamic>?;
-    
+
     return ReviewItem(
       id: int.tryParse(json['id'].toString()) ?? 0,
       rating: num.tryParse(json['rating'].toString()) ?? 0,
       comment: json['comment']?.toString(),
-      studentName: student != null ? (student['name'] ?? '').toString() : (json['student_name'] ?? 'طالب').toString(),
-      studentPhoto: student != null ? student['photo']?.toString() : json['student_photo']?.toString(),
+      studentName: student != null
+          ? (student['name'] ?? '').toString()
+          : (json['student_name'] ?? 'طالب').toString(),
+      studentPhoto: student != null
+          ? student['photo']?.toString()
+          : json['student_photo']?.toString(),
       date: (json['created_at'] ?? json['date'] ?? '').toString(),
     );
   }

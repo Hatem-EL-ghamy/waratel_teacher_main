@@ -15,6 +15,9 @@ import 'package:waratel_app/features/contact_us/ui/contact_us_screen.dart';
 import 'package:waratel_app/features/statistics/ui/statistics_screen.dart';
 import 'package:waratel_app/features/terms/ui/terms_screen.dart';
 import 'package:waratel_app/features/terms/ui/terms_agreement_screen.dart';
+import 'package:waratel_app/features/quran_recitation/ui/live_maqra_screen.dart';
+import 'package:waratel_app/features/quran_recitation/ui/quran_screen.dart';
+import 'package:waratel_app/features/ai_chat/ui/ai_chat_screen.dart';
 
 /// إدارة التوجيه في التطبيق - العودة للـ MaterialPageRoute لضمان الاستقرار
 class AppRouter {
@@ -49,6 +52,9 @@ class AppRouter {
             channelName: args['channelName'] ?? '',
             uid: args['uid'] ?? 0,
             studentName: args['studentName'] ?? 'طالب',
+            callId: args['callId'] is int
+                ? args['callId']
+                : int.tryParse(args['callId']?.toString() ?? ''),
           ),
         );
 
@@ -75,6 +81,15 @@ class AppRouter {
 
       case Routes.termsAgreement:
         return MaterialPageRoute(builder: (_) => const TermsAgreementScreen());
+
+      case Routes.quran:
+        return MaterialPageRoute(builder: (_) => const QuranScreen());
+
+      case Routes.maqraa:
+        return MaterialPageRoute(builder: (_) => const QuranRecitationScreen());
+
+      case Routes.aiChat:
+        return MaterialPageRoute(builder: (_) => const AiChatScreen());
 
       default:
         return MaterialPageRoute(

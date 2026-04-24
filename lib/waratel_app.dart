@@ -18,21 +18,22 @@ class WaratelApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => getIt<LocaleCubit>()..getSavedLanguage(),
-      child: BlocBuilder<LocaleCubit, LocaleState>(
-        buildWhen: (prev, curr) => curr is ChangeLocaleState,
-        builder: (context, state) {
-          Locale locale = const Locale('ar');
-          if (state is ChangeLocaleState) {
-            locale = state.locale;
-          }
-          return ScreenUtilInit(
-            // تصميم التطبيق بناءً على حجم الشاشة
-            designSize: const Size(375, 812),
-            minTextAdapt: true,
-            splitScreenMode: true,
-            builder: (context, child) {
+    // PERF: ScreenUtilInit يُبنى مرة واحدة فقط خارج BlocBuilder
+    // حتى لا يُعاد بناؤه عند كل تغيير للغة.
+    return ScreenUtilInit(
+      designSize: const Size(375, 812),
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (context, child) {
+        return BlocProvider(
+          create: (context) => getIt<LocaleCubit>()..getSavedLanguage(),
+          child: BlocBuilder<LocaleCubit, LocaleState>(
+            buildWhen: (prev, curr) => curr is ChangeLocaleState,
+            builder: (context, state) {
+              Locale locale = const Locale('ar');
+              if (state is ChangeLocaleState) {
+                locale = state.locale;
+              }
               return MaterialApp(
                 // ========== إعدادات التطبيق ==========
                 title: 'ورتّل للمعلم',
@@ -43,6 +44,12 @@ class WaratelApp extends StatelessWidget {
 
                 // ========== الثيم ==========
                 theme: AppStyles.lightTheme,
+
+                // ========== السلوك العام للتمرير ==========
+                // PERF: BouncingScrollPhysics تُضفي سلاسة على جميع القوائم
+                scrollBehavior: const MaterialScrollBehavior().copyWith(
+                  physics: const BouncingScrollPhysics(),
+                ),
 
                 // ========== اللغة والاتجاه ==========
                 locale: locale,
@@ -60,11 +67,23 @@ class WaratelApp extends StatelessWidget {
                 // ========== التوجيه ==========
                 initialRoute: Routes.splash,
                 onGenerateRoute: AppRouter.generateRoute,
+
+                // ========== إغلاق الكيبورد عند النقر خارجه ==========
+                // PERF: GestureDetector على مستوى التطبيق يُغلق الكيبورد
+                // عند النقر في أي مكان خارج حقل الإدخال.
+                builder: (context, child) {
+                  return GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () =>
+                        FocusManager.instance.primaryFocus?.unfocus(),
+                    child: child!,
+                  );
+                },
               );
             },
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }

@@ -55,7 +55,11 @@ class StatisticsCubit extends Cubit<StatisticsState> {
         emit(StatisticsError('فشل تحميل الإحصائيات من السيرفر'));
       }
     } catch (e) {
-      emit(StatisticsError('خطأ في جلب البيانات: ${e.toString()}'));
+      String message = e.toString();
+      if (message.startsWith('Exception: ')) {
+        message = message.replaceFirst('Exception: ', '');
+      }
+      emit(StatisticsError('خطأ في جلب البيانات: $message'));
     }
   }
 }

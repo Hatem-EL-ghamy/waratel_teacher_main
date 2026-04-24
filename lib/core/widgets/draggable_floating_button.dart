@@ -13,7 +13,8 @@ class DraggableFloatingButton extends StatefulWidget {
   });
 
   @override
-  State<DraggableFloatingButton> createState() => _DraggableFloatingButtonState();
+  State<DraggableFloatingButton> createState() =>
+      _DraggableFloatingButtonState();
 }
 
 class _DraggableFloatingButtonState extends State<DraggableFloatingButton> {

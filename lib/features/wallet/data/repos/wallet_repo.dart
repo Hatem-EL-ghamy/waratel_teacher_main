@@ -30,7 +30,8 @@ class WalletRepo {
     }
   }
 
-  Future<WithdrawalHistoryResponse> getWithdrawalRequests({int page = 1}) async {
+  Future<WithdrawalHistoryResponse> getWithdrawalRequests(
+      {int page = 1}) async {
     try {
       return await _walletApi.getWithdrawalRequests(page: page);
     } catch (e) {
@@ -38,7 +39,8 @@ class WalletRepo {
     }
   }
 
-  Future<CancelWithdrawalResponse> cancelWithdrawalRequest(int requestId) async {
+  Future<CancelWithdrawalResponse> cancelWithdrawalRequest(
+      int requestId) async {
     try {
       return await _walletApi.cancelWithdrawalRequest(requestId);
     } catch (e) {

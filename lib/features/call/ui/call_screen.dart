@@ -4,12 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:waratel_app/core/agora/agora_service.dart';
 import 'package:waratel_app/core/di/dependency_injection.dart';
-import 'package:waratel_app/core/theming/colors.dart';
 import 'package:waratel_app/features/call/logic/cubit/call_cubit.dart';
 import 'package:waratel_app/features/call/logic/cubit/call_state.dart';
 import 'package:waratel_app/features/call/ui/widgets/floating_mushaf.dart';
 import 'package:waratel_app/features/call/ui/widgets/session_report_dialog.dart';
 import 'package:waratel_app/features/localization/data/app_localizations.dart';
+import 'package:waratel_app/core/routing/routers.dart';
 import 'package:intl/intl.dart';
 
 class CallScreen extends StatefulWidget {
@@ -17,6 +17,7 @@ class CallScreen extends StatefulWidget {
   final String channelName;
   final int uid;
   final String studentName;
+  final int? callId;
 
   const CallScreen({
     super.key,
@@ -24,6 +25,7 @@ class CallScreen extends StatefulWidget {
     required this.channelName,
     required this.uid,
     this.studentName = '',
+    this.callId,
   });
 
   @override
@@ -43,30 +45,52 @@ class _CallScreenState extends State<CallScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => getIt<CallCubit>()..startCall(
-        token: widget.token,
-        channelName: widget.channelName,
-        uid: widget.uid,
-      ),
+      create: (context) =>
+          getIt<CallCubit>()..joinAndStartCall(widget.callId ?? 0),
       child: BlocConsumer<CallCubit, CallState>(
         listener: (context, state) {
           if (state is CallError) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+              SnackBar(
+                  content: Text(state.message), backgroundColor: Colors.red),
             );
             Navigator.pop(context);
+          } else if (state is CallRemoteUserLeft) {
+            // Auto end the call when student leaves
+            final cubit = context.read<CallCubit>();
+            cubit.endCall();
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (dialogContext) => SessionReportDialog(
+                studentName: widget.studentName.isEmpty
+                    ? 'student'.tr(context)
+                    : widget.studentName,
+                trackName: 'memorization_track'.tr(context),
+                startTime: _callStartTime,
+                duration: cubit.currentDurationString,
+                sessionId: widget.callId,
+                onSuccess: () {
+                  Navigator.pop(dialogContext);
+                  Navigator.pop(context);
+                },
+              ),
+            );
           }
         },
         builder: (context, state) {
           final cubit = context.read<CallCubit>();
-          
+
           return PopScope(
             // منع الخروج العرضي من المكالمة بزر الرجوع
             canPop: false,
             onPopInvokedWithResult: (didPop, result) {
               if (!didPop) {
+                // إنهاء المكالمة فوراً عند الرغبة في الخروج
+                cubit.endCall();
                 showDialog(
                   context: context,
+                  barrierDismissible: false,
                   builder: (dialogContext) => SessionReportDialog(
                     studentName: widget.studentName.isEmpty
                         ? 'student'.tr(context)
@@ -74,10 +98,10 @@ class _CallScreenState extends State<CallScreen> {
                     trackName: 'memorization_track'.tr(context),
                     startTime: _callStartTime,
                     duration: cubit.currentDurationString,
+                    sessionId: widget.callId,
                     onSuccess: () {
-                      cubit.endCall();
                       Navigator.pop(dialogContext); // Close dialog
-                      Navigator.pop(context);       // Close CallScreen
+                      Navigator.pop(context); // Close CallScreen
                     },
                   ),
                 );
@@ -101,7 +125,7 @@ class _CallScreenState extends State<CallScreen> {
 
                   // 5. Floating Mushaf Overlay
                   if (cubit.isMushafOpen)
-                     FloatingMushaf(onClose: () => cubit.toggleMushaf()),
+                    FloatingMushaf(onClose: () => cubit.toggleMushaf()),
                 ],
               ),
             ),
@@ -124,7 +148,9 @@ class _CallScreenState extends State<CallScreen> {
             ),
             SizedBox(height: 20.h),
             Text(
-              !_agoraService.isInitialized ? 'initializing_call'.tr(context) : 'waiting_for_student'.tr(context),
+              !_agoraService.isInitialized
+                  ? 'initializing_call'.tr(context)
+                  : 'waiting_for_student'.tr(context),
               style: TextStyle(color: Colors.white, fontSize: 16.sp),
             ),
           ],
@@ -132,11 +158,13 @@ class _CallScreenState extends State<CallScreen> {
       );
     }
 
-    return AgoraVideoView(
-      controller: VideoViewController.remote(
-        rtcEngine: _agoraService.engine,
-        canvas: VideoCanvas(uid: cubit.remoteUid),
-        connection: RtcConnection(channelId: widget.channelName),
+    return RepaintBoundary(
+      child: AgoraVideoView(
+        controller: VideoViewController.remote(
+          rtcEngine: _agoraService.engine,
+          canvas: VideoCanvas(uid: cubit.remoteUid),
+          connection: RtcConnection(channelId: widget.channelName),
+        ),
       ),
     );
   }
@@ -149,20 +177,22 @@ class _CallScreenState extends State<CallScreen> {
     return Positioned(
       top: 100.h,
       right: 20.w,
-      child: Container(
-        width: 120.w,
-        height: 180.h,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15.r),
-          border: Border.all(color: Colors.white, width: 2),
-          color: Colors.black,
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(13.r),
-          child: AgoraVideoView(
-            controller: VideoViewController(
-              rtcEngine: _agoraService.engine,
-              canvas: const VideoCanvas(uid: 0),
+      child: RepaintBoundary(
+        child: Container(
+          width: 120.w,
+          height: 180.h,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15.r),
+            border: Border.all(color: Colors.white, width: 2),
+            color: Colors.black,
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(13.r),
+            child: AgoraVideoView(
+              controller: VideoViewController(
+                rtcEngine: _agoraService.engine,
+                canvas: const VideoCanvas(uid: 0),
+              ),
             ),
           ),
         ),
@@ -176,7 +206,8 @@ class _CallScreenState extends State<CallScreen> {
       left: 0,
       right: 0,
       child: Container(
-        padding: EdgeInsets.only(top: 50.h, bottom: 20.h, left: 20.w, right: 20.w),
+        padding:
+            EdgeInsets.only(top: 50.h, bottom: 20.h, left: 20.w, right: 20.w),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -191,22 +222,31 @@ class _CallScreenState extends State<CallScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.studentName.isEmpty ? 'student'.tr(context) : widget.studentName,
-                  style: TextStyle(color: Colors.white, fontSize: 18.sp, fontWeight: FontWeight.bold),
+                  widget.studentName.isEmpty
+                      ? 'student'.tr(context)
+                      : widget.studentName,
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold),
                 ),
                 BlocBuilder<CallCubit, CallState>(
                   buildWhen: (previous, current) => current is CallTimerUpdated,
                   builder: (context, state) {
-                    String time = (state is CallTimerUpdated) ? state.duration : '00:00';
-                    return Text(
-                      time,
-                      style: TextStyle(color: Colors.white70, fontSize: 14.sp),
+                    String time =
+                        (state is CallTimerUpdated) ? state.duration : '00:00';
+                    return RepaintBoundary(
+                      child: Text(
+                        time,
+                        style:
+                            TextStyle(color: Colors.white70, fontSize: 14.sp),
+                      ),
                     );
                   },
                 ),
               ],
             ),
-            // مؤقت المكالمة يُعرض في الـ Timer widget أدناه
+            // مؤقت المكالمة يُعرض في الـ Timer widget أعلاه
           ],
         ),
       ),
@@ -232,22 +272,32 @@ class _CallScreenState extends State<CallScreen> {
             color: cubit.isCamOn ? Colors.white24 : Colors.red,
           ),
           _controlCircle(
+            icon: cubit.isSpeakerOn ? Icons.volume_up : Icons.volume_off,
+            onTap: () => cubit.toggleSpeaker(),
+            color: cubit.isSpeakerOn ? Colors.blue : Colors.white24,
+          ),
+          _controlCircle(
             icon: Icons.menu_book,
-            onTap: () => cubit.toggleMushaf(),
-            color: cubit.isMushafOpen ? ColorsManager.primaryColor : Colors.white24,
+            onTap: () => Navigator.pushNamed(context, Routes.quran),
+            color: Colors.white24,
           ),
           _controlCircle(
             icon: Icons.call_end,
             onTap: () {
-               showDialog(
+              // إنهاء المكالمة فوراً
+              cubit.endCall();
+              showDialog(
                 context: context,
+                barrierDismissible: false,
                 builder: (context) => SessionReportDialog(
-                  studentName: widget.studentName.isEmpty ? 'student'.tr(context) : widget.studentName,
+                  studentName: widget.studentName.isEmpty
+                      ? 'student'.tr(context)
+                      : widget.studentName,
                   trackName: 'memorization_track'.tr(context),
                   startTime: _callStartTime,
                   duration: cubit.currentDurationString,
+                  sessionId: widget.callId,
                   onSuccess: () {
-                    cubit.endCall();
                     Navigator.pop(context); // Close dialog
                     Navigator.pop(context); // Close CallScreen
                   },

@@ -25,7 +25,7 @@ class SessionDetailsScreen extends StatelessWidget {
           children: [
             // Header with Student Info
             _buildHeader(context),
-            
+
             Padding(
               padding: EdgeInsets.all(20.w),
               child: Column(
@@ -34,65 +34,55 @@ class SessionDetailsScreen extends StatelessWidget {
                   // Core Info Cards
                   Row(
                     children: [
-                      _buildInfoBox(
-                        context, 
-                        'date'.tr(context), 
-                        session.date, 
-                        Icons.calendar_today,
-                        Colors.blue
-                      ),
+                      _buildInfoBox(context, 'date'.tr(context), session.date,
+                          Icons.calendar_today, Colors.blue),
                     ],
                   ),
                   SizedBox(height: 15.h),
                   Row(
                     children: [
-                      _buildInfoBox(
-                        context, 
-                        'duration_label'.tr(context), 
-                        session.duration, 
-                        Icons.timer_outlined,
-                        Colors.green
-                      ),
+                      _buildInfoBox(context, 'duration_label'.tr(context),
+                          session.duration, Icons.timer_outlined, Colors.green),
                       SizedBox(width: 15.w),
-                      _buildInfoBox(
-                        context, 
-                        'rating_label'.tr(context), 
-                        session.rating, 
-                        Icons.star_outline,
-                        Colors.amber
-                      ),
+                      _buildInfoBox(context, 'rating_label'.tr(context),
+                          session.rating, Icons.star_outline, Colors.amber),
                     ],
                   ),
                   SizedBox(height: 15.h),
                   Row(
                     children: [
                       _buildInfoBox(
-                        context, 
-                        'status'.tr(context), 
-                        session.isPresent ? 'present'.tr(context) : 'absent'.tr(context), 
-                        Icons.check_circle_outline,
-                        session.isPresent ? Colors.green : Colors.red
-                      ),
+                          context,
+                          'status'.tr(context),
+                          session.isPresent
+                              ? 'present'.tr(context)
+                              : 'absent'.tr(context),
+                          Icons.check_circle_outline,
+                          session.isPresent ? Colors.green : Colors.red),
                     ],
                   ),
-                  
+
                   SizedBox(height: 30.h),
-                  
+
                   // Notes Section
                   _buildContentSection(
                     context,
                     'educational_notes'.tr(context),
-                    session.notes.isEmpty ? 'no_notes'.tr(context) : session.notes,
+                    session.notes.isEmpty
+                        ? 'no_notes'.tr(context)
+                        : session.notes,
                     Icons.edit_note,
                   ),
-                  
+
                   SizedBox(height: 20.h),
-                  
+
                   // Next Assignment Section
                   _buildContentSection(
                     context,
                     'next_assignment'.tr(context),
-                    session.nextAssignment.isEmpty ? 'not_specified'.tr(context) : session.nextAssignment,
+                    session.nextAssignment.isEmpty
+                        ? 'not_specified'.tr(context)
+                        : session.nextAssignment,
                     Icons.menu_book,
                   ),
                 ],
@@ -107,7 +97,8 @@ class SessionDetailsScreen extends StatelessWidget {
   Widget _buildHeader(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.only(bottom: 30.h, left: 20.w, right: 20.w, top: 10.h),
+      padding:
+          EdgeInsets.only(bottom: 30.h, left: 20.w, right: 20.w, top: 10.h),
       decoration: BoxDecoration(
         color: ColorsManager.primaryColor,
         borderRadius: BorderRadius.only(
@@ -144,7 +135,8 @@ class SessionDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoBox(BuildContext context, String label, String value, IconData icon, Color color) {
+  Widget _buildInfoBox(BuildContext context, String label, String value,
+      IconData icon, Color color) {
     return Expanded(
       child: Container(
         padding: EdgeInsets.all(15.w),
@@ -177,7 +169,8 @@ class SessionDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildContentSection(BuildContext context, String title, String content, IconData icon) {
+  Widget _buildContentSection(
+      BuildContext context, String title, String content, IconData icon) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

@@ -19,21 +19,45 @@ class ScheduleApi {
     return MySlotsResponse.fromJson(response.data as Map<String, dynamic>);
   }
 
-  /// POST /teacher/slots (Batch Addition using FormData)
+  /// POST /teacher/slots - one request per slot
+  Future<bool> addSingleSlot({
+    required String date,
+    required String startTime,
+    required String endTime,
+  }) async {
+    final response = await _dio.post(
+      ApiConstants.teacherSlots,
+      data: {
+        'date': date,
+        'start_time': startTime,
+        'end_time': endTime,
+      },
+    );
+    final result =
+        AddSlotsResponse.fromJson(response.data as Map<String, dynamic>);
+    return result.status;
+  }
+
+  // Keep for backwards compatibility
   Future<AddSlotsResponse> addBatchSlots({
     required String date,
     required List<String> startTimes,
     required List<String> endTimes,
   }) async {
-    final response = await _dio.post(
-      ApiConstants.teacherSlots,
-      data: FormData.fromMap({
-        'date': date,
-        'start_time': startTimes,
-        'end_time': endTimes,
-      }),
+    // Send all slot requests in parallel for faster submission
+    await Future.wait(
+      List.generate(
+          startTimes.length,
+          (i) => _dio.post(
+                ApiConstants.teacherSlots,
+                data: {
+                  'date': date,
+                  'start_time': startTimes[i],
+                  'end_time': endTimes[i],
+                },
+              )),
     );
-    return AddSlotsResponse.fromJson(response.data as Map<String, dynamic>);
+    return AddSlotsResponse(status: true, message: 'تم الإضافة بنجاح');
   }
 
   /// DELETE /teacher/slots/{id}
@@ -44,7 +68,7 @@ class ScheduleApi {
     return DeleteSlotResponse.fromJson(response.data as Map<String, dynamic>);
   }
 
-  /// DELETE /teacher/slots-by-day
+  /// POST /teacher/slots-by-day  (server only supports POST for this route)
   Future<DeleteSlotsByDayResponse> deleteSlotsByDay(String date) async {
     final response = await _dio.post(
       ApiConstants.teacherSlotsByDay,

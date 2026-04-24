@@ -7,6 +7,8 @@ import 'package:waratel_app/features/record/logic/cubit/record_cubit.dart';
 import 'package:waratel_app/features/record/data/models/session_model.dart';
 import 'package:waratel_app/features/localization/data/app_localizations.dart';
 import 'package:waratel_app/features/call/data/models/call_model.dart';
+import 'package:waratel_app/features/bookings/logic/cubit/bookings_cubit.dart';
+import 'package:waratel_app/features/schedule/logic/cubit/schedule_cubit.dart';
 import 'package:intl/intl.dart';
 
 class SessionReportDialog extends StatefulWidget {
@@ -14,6 +16,7 @@ class SessionReportDialog extends StatefulWidget {
   final String trackName;
   final String? startTime;
   final String? duration;
+  final int? sessionId;
   final VoidCallback? onSuccess;
 
   const SessionReportDialog({
@@ -22,6 +25,7 @@ class SessionReportDialog extends StatefulWidget {
     required this.trackName,
     this.startTime,
     this.duration,
+    this.sessionId,
     this.onSuccess,
   });
 
@@ -58,7 +62,7 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
-    final dateStr = DateFormat('yyyy-M-d').format(now);
+    final dateStr = DateFormat('yyyy-MM-dd').format(now);
     // Use jm() for localized 12h format (e.g. 6:57 PM or 6:57 م)
     final timeStr = widget.startTime ?? DateFormat.jm().format(now);
 
@@ -94,7 +98,7 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 20.h),
-              
+
               // Student Info Header (Compact)
               Container(
                 padding: EdgeInsets.all(12.w),
@@ -106,8 +110,10 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
                   children: [
                     CircleAvatar(
                       radius: 25.r,
-                      backgroundColor: ColorsManager.primaryColor.withValues(alpha: 0.12),
-                      child: Icon(Icons.person, color: ColorsManager.primaryColor, size: 30.sp),
+                      backgroundColor:
+                          ColorsManager.primaryColor.withValues(alpha: 0.12),
+                      child: Icon(Icons.person,
+                          color: ColorsManager.primaryColor, size: 30.sp),
                     ),
                     SizedBox(width: 12.w),
                     Expanded(
@@ -125,10 +131,9 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
                           Text(
                             widget.trackName,
                             style: TextStyle(
-                              fontSize: 12.sp,
-                              color: ColorsManager.primaryColor,
-                              fontWeight: FontWeight.bold
-                            ),
+                                fontSize: 12.sp,
+                                color: ColorsManager.primaryColor,
+                                fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -136,40 +141,29 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
                   ],
                 ),
               ),
-              
+
               SizedBox(height: 15.h),
 
               // Automatic Data (Date & Time)
               Row(
                 children: [
-                   _buildAutoDataBox(
-                    context, 
-                    'date'.tr(context), 
-                    dateStr, 
-                    Icons.calendar_today,
-                    Colors.blue
-                  ),
+                  _buildAutoDataBox(context, 'date'.tr(context), dateStr,
+                      Icons.calendar_today, Colors.blue),
+                  SizedBox(width: 8.w),
+                  _buildAutoDataBox(context, 'session_time'.tr(context),
+                      timeStr, Icons.access_time, Colors.orange),
                   SizedBox(width: 8.w),
                   _buildAutoDataBox(
-                    context, 
-                    'session_time'.tr(context), 
-                    timeStr, 
-                    Icons.access_time,
-                    Colors.orange
-                  ),
-                  SizedBox(width: 8.w),
-                  _buildAutoDataBox(
-                    context, 
-                    'duration_label'.tr(context), 
-                    widget.duration ?? '00:00', 
-                    Icons.timer_outlined,
-                    Colors.green
-                  ),
+                      context,
+                      'duration_label'.tr(context),
+                      widget.duration ?? '00:00',
+                      Icons.timer_outlined,
+                      Colors.green),
                 ],
               ),
 
               Divider(height: 30.h, color: Colors.grey.shade100),
-              
+
               // Attendance
               _buildSectionTitle('attendance_status'.tr(context)),
               SizedBox(height: 10.h),
@@ -193,9 +187,9 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
                   ),
                 ],
               ),
-              
+
               SizedBox(height: 20.h),
-              
+
               // Rating
               _buildSectionTitle('reception_rating'.tr(context)),
               SizedBox(height: 10.h),
@@ -204,19 +198,20 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
                 runSpacing: 10.h,
                 alignment: WrapAlignment.center,
                 children: ratings.map((rating) {
-                   return SizedBox(
-                     width: (MediaQuery.of(context).size.width - 100.w) / 2, // Approx half width
-                     child: _buildRatingOption(
-                       label: rating.tr(context),
-                       isSelected: selectedRating == rating,
-                       onTap: () => setState(() => selectedRating = rating),
-                     ),
-                   );
+                  return SizedBox(
+                    width: (MediaQuery.of(context).size.width - 100.w) /
+                        2, // Approx half width
+                    child: _buildRatingOption(
+                      label: rating.tr(context),
+                      isSelected: selectedRating == rating,
+                      onTap: () => setState(() => selectedRating = rating),
+                    ),
+                  );
                 }).toList(),
               ),
-              
+
               SizedBox(height: 20.h),
-              
+
               // Notes
               _buildSectionTitle('educational_notes'.tr(context)),
               SizedBox(height: 10.h),
@@ -226,10 +221,11 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
                 style: TextStyle(fontSize: 14.sp),
                 decoration: InputDecoration(
                   hintText: 'educational_notes_hint'.tr(context),
-                  hintStyle: TextStyle(fontSize: 12.sp, color: Colors.grey.shade500),
+                  hintStyle:
+                      TextStyle(fontSize: 12.sp, color: Colors.grey.shade500),
                   filled: true,
                   fillColor: Colors.grey.shade50,
-                   border: OutlineInputBorder(
+                  border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.r),
                     borderSide: BorderSide(color: Colors.grey.shade200),
                   ),
@@ -245,18 +241,20 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
               ),
 
               SizedBox(height: 20.h),
-               // Next Assignment (Now called Session Content in localizations)
+              // Next Assignment (Now called Session Content in localizations)
               _buildSectionTitle('next_assignment_label'.tr(context)),
               SizedBox(height: 10.h),
               TextFormField(
                 controller: nextAssignmentController,
                 style: TextStyle(fontSize: 14.sp),
-                 decoration: InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'assignment_example'.tr(context),
-                  hintStyle: TextStyle(fontSize: 12.sp, color: Colors.grey.shade500),
+                  hintStyle:
+                      TextStyle(fontSize: 12.sp, color: Colors.grey.shade500),
                   filled: true,
                   fillColor: Colors.grey.shade50,
-                  prefixIcon: Icon(Icons.menu_book, color: ColorsManager.primaryColor, size: 20.sp),
+                  prefixIcon: Icon(Icons.menu_book,
+                      color: ColorsManager.primaryColor, size: 20.sp),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.r),
                     borderSide: BorderSide(color: Colors.grey.shade200),
@@ -271,9 +269,9 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
                   ),
                 ),
               ),
-              
+
               SizedBox(height: 30.h),
-              
+
               // Action Button
               SizedBox(
                 width: double.infinity,
@@ -304,7 +302,8 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
     );
   }
 
-  Widget _buildAutoDataBox(BuildContext context, String label, String value, IconData icon, Color color) {
+  Widget _buildAutoDataBox(BuildContext context, String label, String value,
+      IconData icon, Color color) {
     return Expanded(
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 4.w),
@@ -347,28 +346,35 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
       ),
     );
   }
-  
-  void _saveAndEnd() {
+
+  void _saveAndEnd() async {
     final now = DateTime.now();
-    
+
     // Create Session Model
     final session = SessionModel(
       studentName: widget.studentName,
-      date: DateFormat('yyyy-M-d').format(now),
+      date: DateFormat('yyyy-MM-dd').format(now),
       time: widget.startTime ?? DateFormat.jm().format(now),
       duration: widget.duration ?? '00:00',
       trackName: widget.trackName,
-      status: 'completed'.tr(context), 
+      status: 'completed'.tr(context),
       notes: notesController.text,
       nextAssignment: nextAssignmentController.text,
       rating: selectedRating.tr(context),
       isPresent: isPresent,
     );
-    
+
     // Save to RecordCubit
     getIt<RecordCubit>().addSession(session);
-    
-    // Also update HomeCubit for recent calls (keep existing behavior for compatibility)
+
+    // End Session on Server is already handled by CallCubit before opening this dialog.
+
+    // Refresh All Data Providers
+    getIt<HomeCubit>().loadSoon(); // Refresh Home card
+    getIt<BookingsCubit>().loadBookings(); // Refresh "My Sessions" tab
+    getIt<ScheduleCubit>().loadSchedule(); // Refresh "Schedule" tab
+
+    // Compatibility update for HomeCubit recent calls
     final newReview = CallModel(
       id: 0,
       studentName: widget.studentName,
@@ -379,14 +385,15 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
       rating: 5,
     );
     getIt<HomeCubit>().addCall(newReview);
-    
-    // Check if we have a success callback for specific cleanup (e.g. ending Agora session)
+
+    // Close Dialog and Call Screen
     if (widget.onSuccess != null) {
       widget.onSuccess!();
     } else {
-      // Default: Close Dialog AND Call Screen to go back to Home
-      Navigator.of(context).pop(); // Close Dialog
-      Navigator.of(context).pop(); // Close Call Screen
+      if (mounted) {
+        Navigator.of(context).pop(); // Close Dialog
+        Navigator.of(context).pop(); // Close Call Screen
+      }
     }
   }
 
@@ -410,8 +417,9 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
     required VoidCallback onTap,
     bool isPositive = false,
   }) {
-    Color activeColor = isPositive ? ColorsManager.primaryColor : Colors.redAccent;
-    
+    Color activeColor =
+        isPositive ? ColorsManager.primaryColor : Colors.redAccent;
+
     return InkWell(
       onTap: onTap,
       child: Container(
@@ -437,8 +445,8 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
       ),
     );
   }
-  
-   Widget _buildRatingOption({
+
+  Widget _buildRatingOption({
     required String label,
     required bool isSelected,
     required VoidCallback onTap,
@@ -456,7 +464,9 @@ class _SessionReportDialogState extends State<SessionReportDialog> {
           child: Text(
             label,
             style: TextStyle(
-              color: isSelected ? Colors.white : ColorsManager.textPrimaryColor.withValues(alpha: 0.7),
+              color: isSelected
+                  ? Colors.white
+                  : ColorsManager.textPrimaryColor.withValues(alpha: 0.7),
               fontWeight: FontWeight.bold,
               fontSize: 13.sp,
             ),

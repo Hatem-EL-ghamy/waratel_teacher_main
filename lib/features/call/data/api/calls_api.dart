@@ -17,9 +17,20 @@ class CallsApi {
   }
 
   /// GET /teacher/calls/{id}
-  Future<Map<String, dynamic>> getCallDetail(int callId) async {
+  Future<CallDetailsResponse> getCallDetail(int callId) async {
     final response = await _dio.get(ApiConstants.teacherCallDetail(callId));
-    return response.data;
+    return CallDetailsResponse.fromJson(response.data);
   }
 
+  /// POST /teacher/call/{id}/join
+  Future<JoinCallResponse> joinCall(int callId) async {
+    final response = await _dio.post(ApiConstants.teacherJoinCall(callId));
+    return JoinCallResponse.fromJson(response.data);
+  }
+
+  /// POST /teacher/call/{id}/end
+  Future<EndCallResponse> endCall(int callId) async {
+    final response = await _dio.post(ApiConstants.teacherEndCall(callId));
+    return EndCallResponse.fromJson(response.data);
+  }
 }

@@ -1,5 +1,4 @@
- import 'package:waratel_app/features/wallet/data/models/wallet_models.dart';
-
+import 'package:waratel_app/features/wallet/data/models/wallet_models.dart';
 
 abstract class WalletState {}
 

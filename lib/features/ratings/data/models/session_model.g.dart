@@ -20,6 +20,7 @@ SessionsPaginatedData _$SessionsPaginatedDataFromJson(
       sessions: (json['data'] as List<dynamic>)
           .map((e) => SessionItem.fromJson(e as Map<String, dynamic>))
           .toList(),
+      total: (json['total'] as num?)?.toInt(),
     );
 
 SessionItem _$SessionItemFromJson(Map<String, dynamic> json) => SessionItem(
@@ -83,6 +84,7 @@ EndSessionResponse _$EndSessionResponseFromJson(Map<String, dynamic> json) =>
 
 EndSessionSummary _$EndSessionSummaryFromJson(Map<String, dynamic> json) =>
     EndSessionSummary(
+      endedAt: json['ended_at'] as String?,
       recordingUrl: json['recording_url'] as String?,
     );
 

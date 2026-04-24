@@ -13,7 +13,8 @@ class WalletResponse {
     return WalletResponse(
       status: json['status'] ?? false,
       message: json['message'] ?? '',
-      data: WalletData.fromJson(json['data'] ?? {}),
+      data: WalletData.fromJson(
+          (json['data'] is Map<String, dynamic>) ? json['data'] : {}),
     );
   }
 }
@@ -29,7 +30,8 @@ class WalletData {
 
   factory WalletData.fromJson(Map<String, dynamic> json) {
     return WalletData(
-      wallet: Wallet.fromJson(json['wallet'] ?? {}),
+      wallet: Wallet.fromJson(
+          (json['wallet'] is Map<String, dynamic>) ? json['wallet'] : {}),
       recentWithdrawals: (json['recent_withdrawals'] as List?)
               ?.map((e) => WithdrawalRequest.fromJson(e))
               .toList() ??
@@ -105,7 +107,9 @@ class WithdrawRequestResponse {
     return WithdrawRequestResponse(
       status: json['status'] ?? false,
       message: json['message'] ?? '',
-      data: json['data'] != null ? WithdrawalData.fromJson(json['data']) : null,
+      data: (json['data'] is Map<String, dynamic>)
+          ? WithdrawalData.fromJson(json['data'])
+          : null,
     );
   }
 }
@@ -148,7 +152,8 @@ class WithdrawalHistoryResponse {
     return WithdrawalHistoryResponse(
       status: json['status'] ?? false,
       message: json['message'] ?? '',
-      data: WithdrawalHistoryData.fromJson(json['data'] ?? {}),
+      data: WithdrawalHistoryData.fromJson(
+          (json['data'] is Map<String, dynamic>) ? json['data'] : {}),
     );
   }
 }
@@ -194,7 +199,9 @@ class CancelWithdrawalResponse {
     return CancelWithdrawalResponse(
       status: json['status'] ?? false,
       message: json['message'] ?? '',
-      data: json['data'] != null ? CancelWithdrawalData.fromJson(json['data']) : null,
+      data: (json['data'] is Map<String, dynamic>)
+          ? CancelWithdrawalData.fromJson(json['data'])
+          : null,
     );
   }
 }

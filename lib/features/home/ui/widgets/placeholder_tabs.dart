@@ -9,17 +9,20 @@ class RecordScreen extends StatelessWidget {
 class ScheduleScreen extends StatelessWidget {
   const ScheduleScreen({super.key});
   @override
-  Widget build(BuildContext context) => const Center(child: Text('شاشة الجدول'));
+  Widget build(BuildContext context) =>
+      const Center(child: Text('شاشة الجدول'));
 }
 
 class RatingsScreen extends StatelessWidget {
   const RatingsScreen({super.key});
   @override
-  Widget build(BuildContext context) => const Center(child: Text('شاشة التقييمات'));
+  Widget build(BuildContext context) =>
+      const Center(child: Text('شاشة التقييمات'));
 }
 
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
   @override
-  Widget build(BuildContext context) => const Center(child: Text('شاشة التنبيهات'));
+  Widget build(BuildContext context) =>
+      const Center(child: Text('شاشة التنبيهات'));
 }

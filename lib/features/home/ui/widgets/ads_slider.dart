@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:waratel_app/core/theming/colors.dart';
 import 'package:waratel_app/features/ads/data/models/ads_response.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 /// بانر الإعلانات - تم تبسيطه لأقصى درجة لضمان السلاسة
 class AdsSlider extends StatefulWidget {
@@ -24,8 +26,10 @@ class _AdsSliderState extends State<AdsSlider> {
     _pageController = PageController(initialPage: 0);
     _timer = Timer.periodic(const Duration(seconds: 5), (Timer timer) {
       if (!mounted) return;
+      if (widget.ads.isEmpty) return;
       if (_pageController.hasClients) {
-        final nextPage = _currentPage < widget.ads.length - 1 ? _currentPage + 1 : 0;
+        final nextPage =
+            _currentPage < widget.ads.length - 1 ? _currentPage + 1 : 0;
         _pageController.animateToPage(
           nextPage,
           duration: const Duration(milliseconds: 400),
@@ -44,6 +48,8 @@ class _AdsSliderState extends State<AdsSlider> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.ads.isEmpty) return const SizedBox.shrink();
+
     return Column(
       children: [
         SizedBox(
@@ -75,59 +81,57 @@ class _AdCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color backgroundColor = ColorsManager.primaryColor;
-    if (ad.bgColor != null && ad.bgColor!.isNotEmpty) {
-      try {
-        final hexColor = ad.bgColor!.replaceAll('#', '');
-        backgroundColor = Color(int.parse('FF$hexColor', radix: 16));
-      } catch (_) {}
-    }
-
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 10.w),
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(16.r),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  ad.title,
-                  style: TextStyle(fontSize: 16.sp, color: Colors.white, fontWeight: FontWeight.bold),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: 8.h),
-                Text(
-                  ad.subtitle,
-                  style: TextStyle(fontSize: 13.sp, color: Colors.white),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          if (ad.imageUrl != null) ...[
-            SizedBox(width: 12.w),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12.r),
-              child: Image.network(
-                ad.imageUrl!,
-                width: 80.w,
-                height: 80.w,
-                fit: BoxFit.cover,
-                // أزلت الـ cacheWidth/cacheHeight للتخلص من أي "تشويش"
-                errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, color: Colors.white),
-              ),
+    return GestureDetector(
+      onTap: () async {
+        if (ad.link != null && ad.link!.trim().isNotEmpty) {
+          final urlString = ad.link!.trim();
+          final uri = Uri.parse(urlString);
+          try {
+            if (await canLaunchUrl(uri)) {
+              await launchUrl(uri, mode: LaunchMode.externalApplication);
+            }
+          } catch (e) {
+            debugPrint('Error launching URL: $e');
+          }
+        }
+      },
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 10.w),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16.r),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
           ],
-        ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16.r),
+          child: ad.imageUrl != null && ad.imageUrl!.isNotEmpty
+              ? CachedNetworkImage(
+                  imageUrl: ad.imageUrl!,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  placeholder: (context, url) => Container(
+                    color: Colors.grey.shade100,
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                      ),
+                    ),
+                  ),
+                  errorWidget: (context, url, dynamic error) => Container(
+                    color: Colors.grey.shade100,
+                    child: const Icon(Icons.broken_image, color: Colors.grey),
+                  ),
+                )
+              : Container(
+                  color: Colors.grey.shade100,
+                  child: const Icon(Icons.image, color: Colors.grey),
+                ),
+        ),
       ),
     );
   }
@@ -143,13 +147,16 @@ class _DotsIndicator extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(
         count,
-        (index) => Container(
+        (index) => AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
           margin: EdgeInsets.symmetric(horizontal: 4.w),
           width: currentIndex == index ? 20.w : 8.w,
           height: 8.h,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(4.r),
-            color: currentIndex == index ? ColorsManager.primaryColor : Colors.grey.shade300,
+            color: currentIndex == index
+                ? ColorsManager.primaryColor
+                : Colors.grey.shade300,
           ),
         ),
       ),

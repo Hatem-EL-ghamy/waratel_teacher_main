@@ -5,6 +5,8 @@ import 'package:waratel_app/core/cache/shared_preferences.dart';
 import 'package:waratel_app/core/di/dependency_injection.dart';
 import 'package:waratel_app/core/routing/routers.dart';
 import 'package:waratel_app/core/call/call_api_service.dart';
+import 'package:waratel_app/features/notifications/logic/cubit/notifications_cubit.dart';
+import 'package:waratel_app/core/notifications/local_notification_service.dart';
 import 'package:flutter_callkit_incoming/entities/call_event.dart';
 import 'package:pusher_channels_flutter/pusher_channels_flutter.dart';
 import 'package:flutter_callkit_incoming/entities/android_params.dart';
@@ -42,7 +44,7 @@ class CallService {
   Future<void> initPusher(int teacherId) async {
     try {
       debugPrint('🔌 [PUSHER] Starting initPusher for teacher: $teacherId');
-      
+
       // Skip if already initialized for the same teacher
       if (_isInitialized && _currentTeacherId == teacherId) {
         debugPrint('✅ [PUSHER] Already initialized for teacher: $teacherId');
@@ -51,13 +53,14 @@ class CallService {
 
       // 1. Disconnect previous connection if any with timeout
       if (_isInitialized) {
-        debugPrint('� [PUSHER] Disconnecting existing connection...');
+        debugPrint(' [PUSHER] Disconnecting existing connection...');
         try {
           final pusher = await _pusher;
           await pusher.disconnect().timeout(
-            const Duration(seconds: 3),
-            onTimeout: () => debugPrint('⚠️ [PUSHER] Disconnect timed out, proceeding...'),
-          );
+                const Duration(seconds: 3),
+                onTimeout: () => debugPrint(
+                    '⚠️ [PUSHER] Disconnect timed out, proceeding...'),
+              );
         } catch (e) {
           debugPrint('⚠️ [PUSHER] Disconnect error: $e');
         }
@@ -66,36 +69,53 @@ class CallService {
       // 2. Initialize
       debugPrint('🔌 [PUSHER] Initializing Pusher...');
       final pusher = await _pusher;
-      await pusher.init(
-        apiKey: '59ebef9ba8db4e38530b',
-        cluster: 'eu',
-        onAuthorizer: _onAuthorizer,
-        onError: (message, code, error) => debugPrint('❌ [PUSHER ERROR] $message'),
-        onSubscriptionSucceeded: (channelName, data) => debugPrint('✅ [PUSHER] Subscribed: $channelName'),
-        onEvent: _onPusherEvent,
-        onConnectionStateChange: (currentState, previousState) {
-          debugPrint('🔌 [PUSHER] State: $previousState → $currentState');
-        },
-      ).timeout(
-        const Duration(seconds: 5),
-        onTimeout: () => throw Exception('Pusher init timed out'),
-      );
+      await pusher
+          .init(
+            apiKey: '59ebef9ba8db4e38530b',
+            cluster: 'eu',
+            useTLS: true,
+            activityTimeout: 60000,
+            pongTimeout: 30000,
+            maxReconnectionAttempts: 10,
+            maxReconnectGapInSeconds: 30,
+            onAuthorizer: _onAuthorizer,
+            onError: (message, code, error) => debugPrint(
+                '❌ [PUSHER ERROR] message: $message, code: $code, error: $error'),
+            onSubscriptionSucceeded: (channelName, data) =>
+                debugPrint('✅ [PUSHER] Subscribed: $channelName'),
+            onEvent: _onPusherEvent,
+            onConnectionStateChange: (currentState, previousState) {
+              debugPrint('🔌 [PUSHER] State: $previousState → $currentState');
+            },
+          )
+          .timeout(
+            const Duration(seconds: 15),
+            onTimeout: () => throw Exception('Pusher init timed out'),
+          );
 
       // 3. Subscribe
       final channelName = 'private-teacher.$teacherId';
       debugPrint('🔌 [PUSHER] Subscribing to $channelName');
       await pusher.subscribe(channelName: channelName).timeout(
-        const Duration(seconds: 5),
-        onTimeout: () => throw Exception('Pusher subscribe timed out'),
-      );
+            const Duration(seconds: 5),
+            onTimeout: () => throw Exception('Pusher subscribe timed out'),
+          );
+
+      final groupChannelName = 'private-group.teachers';
+      debugPrint('🔌 [PUSHER] Subscribing to $groupChannelName');
+      await pusher.subscribe(channelName: groupChannelName).timeout(
+            const Duration(seconds: 5),
+            onTimeout: () =>
+                throw Exception('Pusher group subscribe timed out'),
+          );
 
       // 4. Connect
       debugPrint('🔌 [PUSHER] Connecting...');
       await pusher.connect().timeout(
-        const Duration(seconds: 5),
-        onTimeout: () => throw Exception('Pusher connect timed out'),
-      );
-      
+            const Duration(seconds: 15),
+            onTimeout: () => throw Exception('Pusher connect timed out'),
+          );
+
       _isInitialized = true;
       _currentTeacherId = teacherId;
       debugPrint('✅ [PUSHER] Pusher setup completed successfully');
@@ -106,7 +126,8 @@ class CallService {
   }
 
   // Authorizer extracted for clarity
-  Future<dynamic> _onAuthorizer(String channelName, String socketId, dynamic options) async {
+  Future<dynamic> _onAuthorizer(
+      String channelName, String socketId, dynamic options) async {
     final token = SharedPreferencesService.getToken();
     debugPrint('🔐 [PUSHER AUTH] Requesting auth for channel: $channelName');
     try {
@@ -128,7 +149,8 @@ class CallService {
       debugPrint('✅ [PUSHER AUTH] Auth successful for channel: $channelName');
       return response.data;
     } catch (e) {
-      debugPrint('❌ [PUSHER AUTH ERROR] Auth failed for channel $channelName: $e');
+      debugPrint(
+          '❌ [PUSHER AUTH ERROR] Auth failed for channel $channelName: $e');
       return {"error": "Auth failed"};
     }
   }
@@ -164,12 +186,10 @@ class CallService {
 
         debugPrint('🔔 [PUSHER] بيانات المكالمة المفككة: $data');
 
-        final String callId =
-            (data['call_id'] ?? data['id'] ?? '').toString();
+        final String callId = (data['call_id'] ?? data['id'] ?? '').toString();
         final String studentName =
             (data['student_name'] ?? data['caller_name'] ?? 'طالب').toString();
-        final String channelName =
-            (data['channel_name'] ?? '').toString();
+        final String channelName = (data['channel_name'] ?? '').toString();
 
         if (callId.isEmpty) {
           debugPrint(
@@ -188,6 +208,29 @@ class CallService {
       } catch (e) {
         debugPrint('❌ [PUSHER] فشل فك تشفير بيانات الحدث: $e');
         debugPrint('❌ [PUSHER] البيانات الخام: $rawData');
+      }
+    } else if (name.contains('AdminBroadcast')) {
+      debugPrint(
+          '🚀 [PUSHER] ✅ تم التعرف على إشعار من الإدارة! (حدث: "$name")');
+      try {
+        final Map<String, dynamic> data = (rawData is String)
+            ? jsonDecode(rawData) as Map<String, dynamic>
+            : rawData as Map<String, dynamic>;
+
+        debugPrint(
+            '🔔 [PUSHER] الإشعار: ${data['title']} - ${data['message']}');
+
+        getIt<NotificationsCubit>().addRealTimeNotification(data);
+
+        // عرض الإشعار في نظام الموبايل
+        LocalNotificationService.showNotification(
+          id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+          title: data['title']?.toString() ?? 'إشعار جديد',
+          body: data['message']?.toString() ?? '',
+          payload: jsonEncode(data),
+        );
+      } catch (e) {
+        debugPrint('❌ [PUSHER] فشل فك إشعار الإدارة: $e');
       }
     } else {
       debugPrint('ℹ️ [PUSHER] حدث غير معروف تم تجاهله: "$name"');
@@ -245,8 +288,7 @@ class CallService {
       if (event == null) return;
 
       final String callId = (event.body['id'] ?? '').toString();
-      final String studentName =
-          (event.body['nameCaller'] ?? '').toString();
+      final String studentName = (event.body['nameCaller'] ?? '').toString();
       final String channelName =
           (event.body['extra']?['channel_name'] ?? '').toString();
 
@@ -307,8 +349,7 @@ class CallService {
     // انتظر حتى يصبح الـ Navigator جاهزاً
     int retryCount = 0;
     while (navigatorKey.currentState == null && retryCount < 20) {
-      debugPrint(
-          '⏳ [NAV] Navigator غير جاهز، محاولة ${retryCount + 1}/20...');
+      debugPrint('⏳ [NAV] Navigator غير جاهز، محاولة ${retryCount + 1}/20...');
       await Future.delayed(const Duration(milliseconds: 500));
       retryCount++;
     }
@@ -337,9 +378,10 @@ class CallService {
     try {
       final pusher = await _pusher;
       await pusher.disconnect().timeout(
-        const Duration(seconds: 2),
-        onTimeout: () => debugPrint('⚠️ [PUSHER] Disconnect timeout in dispose'),
-      );
+            const Duration(seconds: 2),
+            onTimeout: () =>
+                debugPrint('⚠️ [PUSHER] Disconnect timeout in dispose'),
+          );
       _isInitialized = false;
       _currentTeacherId = null;
       debugPrint('🔌 [PUSHER] تم قطع الاتصال');

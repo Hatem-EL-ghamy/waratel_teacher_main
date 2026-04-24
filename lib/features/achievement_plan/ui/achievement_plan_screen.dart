@@ -44,12 +44,13 @@ class _AchievementPlanScreenState extends State<AchievementPlanScreen> {
               ),
             );
           } else if (state is AchievementPlanLoaded) {
-            _workHoursController.text = state.preferences.workHoursPerWeek.toString();
+            _workHoursController.text =
+                state.preferences.workHoursPerWeek.toString();
           }
         },
         builder: (context, state) {
           final cubit = context.read<AchievementPlanCubit>();
-          
+
           if (state is AchievementPlanLoading) {
             return Scaffold(
               backgroundColor: ColorsManager.backgroundColor,
@@ -63,8 +64,8 @@ class _AchievementPlanScreenState extends State<AchievementPlanScreen> {
             );
           }
 
-          final prefs = state is AchievementPlanLoaded 
-              ? state.preferences 
+          final prefs = state is AchievementPlanLoaded
+              ? state.preferences
               : cubit.currentPreferences;
 
           return Scaffold(
@@ -75,87 +76,108 @@ class _AchievementPlanScreenState extends State<AchievementPlanScreen> {
               foregroundColor: Colors.white,
               centerTitle: true,
             ),
-            body: SingleChildScrollView(
-              padding: EdgeInsets.all(16.0.w),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSection(
-                    context: context,
-                    title: 'learning_path_prefs'.tr(context),
-                    items: {
-                      'talqin'.tr(context): prefs.learningPaths['talqin'] ?? prefs.learningPaths['تلقين'],
-                      'tilawat'.tr(context): prefs.learningPaths['tilawat'] ?? prefs.learningPaths['تلاوة'],
-                      'tasmie'.tr(context): prefs.learningPaths['tasmie'] ?? prefs.learningPaths['تسميع'],
-                      'iqra_ijaza'.tr(context): prefs.learningPaths['iqra_ijaza'] ?? prefs.learningPaths['إقراء وإجازة'],
-                    },
-                    onToggle: (key) => cubit.toggleLearningPath(key),
-                    onAdjust: (key, delta) => cubit.adjustPercentage('learningPaths', key, delta),
-                    isWide: (key) => key == 'iqra_ijaza'.tr(context),
-                  ),
-                  SizedBox(height: 20.h),
-                  _buildSection(
-                    context: context,
-                    title: 'age_group_prefs'.tr(context),
-                    items: {
-                      '5-12': prefs.ageGroups['5-12'],
-                      '13-59': prefs.ageGroups['13-59'],
-                      '+60': prefs.ageGroups['+60'],
-                    },
-                    onToggle: (key) => cubit.toggleAgeGroup(key),
-                    onAdjust: (key, delta) => cubit.adjustPercentage('ageGroups', key, delta),
-                  ),
-                  SizedBox(height: 20.h),
-                  _buildSection(
-                    context: context,
-                    title: 'student_level_prefs'.tr(context),
-                    items: {
-                      'beginner'.tr(context): prefs.studentLevels['beginner'] ?? prefs.studentLevels['مبتدئ'],
-                      'intermediate'.tr(context): prefs.studentLevels['intermediate'] ?? prefs.studentLevels['متوسط'],
-                      'advanced'.tr(context): prefs.studentLevels['advanced'] ?? prefs.studentLevels['متقدم'],
-                    },
-                    onToggle: (key) => cubit.toggleStudentLevel(key),
-                    onAdjust: (key, delta) => cubit.adjustPercentage('studentLevels', key, delta),
-                  ),
-                  SizedBox(height: 20.h),
-                  Text(
-                    'expected_work_hours'.tr(context),
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
-                  ),
-                  SizedBox(height: 10.h),
-                  TextField(
-                    controller: _workHoursController,
-                    decoration: InputDecoration(
-                      hintText: '20',
-                      fillColor: Colors.white,
-                      filled: true,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.r),
-                        borderSide: const BorderSide(color: Colors.grey),
+            body: RefreshIndicator(
+              onRefresh: () async => cubit.loadPreferences(),
+              color: ColorsManager.primaryColor,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.all(16.0.w),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildSection(
+                      context: context,
+                      title: 'learning_path_prefs'.tr(context),
+                      items: {
+                        'talqin'.tr(context): prefs.learningPaths['talqin'] ??
+                            prefs.learningPaths['تلقين'],
+                        'tilawat'.tr(context): prefs.learningPaths['tilawat'] ??
+                            prefs.learningPaths['تلاوة'],
+                        'tasmie'.tr(context): prefs.learningPaths['tasmie'] ??
+                            prefs.learningPaths['تسميع'],
+                        'iqra_ijaza'.tr(context):
+                            prefs.learningPaths['iqra_ijaza'] ??
+                                prefs.learningPaths['إقراء وإجازة'],
+                      },
+                      onToggle: (key) => cubit.toggleLearningPath(key),
+                      onAdjust: (key, delta) =>
+                          cubit.adjustPercentage('learningPaths', key, delta),
+                      isWide: (key) => key == 'iqra_ijaza'.tr(context),
+                    ),
+                    SizedBox(height: 20.h),
+                    _buildSection(
+                      context: context,
+                      title: 'age_group_prefs'.tr(context),
+                      items: {
+                        '5-12': prefs.ageGroups['5-12'],
+                        '13-59': prefs.ageGroups['13-59'],
+                        '+60': prefs.ageGroups['+60'],
+                      },
+                      onToggle: (key) => cubit.toggleAgeGroup(key),
+                      onAdjust: (key, delta) =>
+                          cubit.adjustPercentage('ageGroups', key, delta),
+                    ),
+                    SizedBox(height: 20.h),
+                    _buildSection(
+                      context: context,
+                      title: 'student_level_prefs'.tr(context),
+                      items: {
+                        'beginner'.tr(context):
+                            prefs.studentLevels['beginner'] ??
+                                prefs.studentLevels['مبتدئ'],
+                        'intermediate'.tr(context):
+                            prefs.studentLevels['intermediate'] ??
+                                prefs.studentLevels['متوسط'],
+                        'advanced'.tr(context):
+                            prefs.studentLevels['advanced'] ??
+                                prefs.studentLevels['متقدم'],
+                      },
+                      onToggle: (key) => cubit.toggleStudentLevel(key),
+                      onAdjust: (key, delta) =>
+                          cubit.adjustPercentage('studentLevels', key, delta),
+                    ),
+                    SizedBox(height: 20.h),
+                    Text(
+                      'expected_work_hours'.tr(context),
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 16.sp),
+                    ),
+                    SizedBox(height: 10.h),
+                    TextField(
+                      controller: _workHoursController,
+                      decoration: InputDecoration(
+                        hintText: '20',
+                        fillColor: Colors.white,
+                        filled: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                          borderSide: const BorderSide(color: Colors.grey),
+                        ),
+                      ),
+                      keyboardType: TextInputType.number,
+                      onChanged: (value) {
+                        final hours = int.tryParse(value) ?? 0;
+                        cubit.updateWorkHours(hours);
+                      },
+                    ),
+                    SizedBox(height: 30.h),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50.h,
+                      child: ElevatedButton(
+                        onPressed: () => cubit.savePreferences(),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: ColorsManager.primaryColor,
+                          foregroundColor: Colors.white,
+                          elevation: 2,
+                        ),
+                        child: Text('save_preferences'.tr(context),
+                            style: TextStyle(fontSize: 16.sp)),
                       ),
                     ),
-                    keyboardType: TextInputType.number,
-                    onChanged: (value) {
-                      final hours = int.tryParse(value) ?? 0;
-                      cubit.updateWorkHours(hours);
-                    },
-                  ),
-                  SizedBox(height: 30.h),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50.h,
-                    child: ElevatedButton(
-                      onPressed: () => cubit.savePreferences(),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: ColorsManager.primaryColor,
-                        foregroundColor: Colors.white,
-                        elevation: 2,
-                      ),
-                      child: Text('save_preferences'.tr(context), style: TextStyle(fontSize: 16.sp)),
-                    ),
-                  ),
-                  SizedBox(height: 20.h),
-                ],
+                    SizedBox(height: 20.h),
+                  ],
+                ),
               ),
             ),
           );
@@ -172,19 +194,23 @@ class _AchievementPlanScreenState extends State<AchievementPlanScreen> {
     required Function(String, int) onAdjust,
     bool Function(String)? isWide,
   }) {
-    final totalPercentage = items.values.where((v) => v != null).fold(0, (sum, v) => sum + v!);
-    
+    final totalPercentage =
+        items.values.where((v) => v != null).fold(0, (sum, v) => sum + v!);
+
     return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             IconButton(
-              icon: Icon(Icons.info_outline, color: ColorsManager.secondaryColor, size: 24.sp),
+              icon: Icon(Icons.info_outline,
+                  color: ColorsManager.secondaryColor, size: 24.sp),
               onPressed: () {},
             ),
-            Text(title, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
-            Text('$totalPercentage%', style: TextStyle(fontSize: 12.sp, color: Colors.grey)),
+            Text(title,
+                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+            Text('$totalPercentage%',
+                style: TextStyle(fontSize: 12.sp, color: Colors.grey)),
           ],
         ),
         SizedBox(height: 10.h),
@@ -195,7 +221,7 @@ class _AchievementPlanScreenState extends State<AchievementPlanScreen> {
           children: items.entries.map((entry) {
             final isSelected = entry.value != null;
             final wide = isWide?.call(entry.key) ?? false;
-            
+
             return _buildPreferenceItem(
               label: entry.key,
               value: entry.value ?? 0,
@@ -266,7 +292,8 @@ class _AchievementPlanScreenState extends State<AchievementPlanScreen> {
                   child: Icon(
                     Icons.remove_circle_outline,
                     size: 16.sp,
-                    color: isSelected ? ColorsManager.secondaryColor : Colors.grey,
+                    color:
+                        isSelected ? ColorsManager.secondaryColor : Colors.grey,
                   ),
                 ),
                 Text(
@@ -281,7 +308,8 @@ class _AchievementPlanScreenState extends State<AchievementPlanScreen> {
                   child: Icon(
                     Icons.add_circle_outline,
                     size: 16.sp,
-                    color: isSelected ? ColorsManager.secondaryColor : Colors.grey,
+                    color:
+                        isSelected ? ColorsManager.secondaryColor : Colors.grey,
                   ),
                 ),
               ],

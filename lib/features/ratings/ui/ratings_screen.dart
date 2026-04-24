@@ -9,6 +9,10 @@ import 'package:waratel_app/features/ratings/data/models/session_model.dart';
 import 'package:waratel_app/features/ratings/logic/cubit/ratings_cubit.dart';
 import 'package:waratel_app/features/ratings/logic/cubit/ratings_state.dart';
 import 'package:waratel_app/features/ratings/ui/maqraa_room_screen.dart';
+import 'package:waratel_app/core/routing/routers.dart';
+import 'package:waratel_app/features/record/data/models/session_model.dart';
+import 'package:waratel_app/features/record/logic/cubit/record_cubit.dart';
+import 'package:waratel_app/features/record/logic/cubit/record_state.dart';
 
 class RatingsScreen extends StatefulWidget {
   const RatingsScreen({super.key});
@@ -28,7 +32,8 @@ class _RatingsScreenState extends State<RatingsScreen> {
         listener: (context, state) {
           if (state is RatingsSessionStarted && !_isNavigating) {
             _isNavigating = true;
-            Navigator.of(context).push(
+            Navigator.of(context)
+                .push(
               MaterialPageRoute(
                 builder: (_) => BlocProvider.value(
                   value: context.read<RatingsCubit>(),
@@ -38,26 +43,40 @@ class _RatingsScreenState extends State<RatingsScreen> {
                   ),
                 ),
               ),
-            ).then((_) {
+            )
+                .then((_) {
               _isNavigating = false;
               if (context.mounted) {
                 context.read<RatingsCubit>().checkStatus();
               }
             });
           }
+          if (state is RatingsSessionEnded) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                  content: Text(state.message), backgroundColor: Colors.green),
+            );
+          }
           if (state is RatingsError) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+              SnackBar(
+                  content: Text(state.message), backgroundColor: Colors.red),
             );
           }
         },
+        buildWhen: (previous, current) =>
+            current is RatingsInitial ||
+            current is RatingsLoading ||
+            current is RatingsLoaded ||
+            current is RatingsError,
         builder: (context, state) {
           return Column(
             children: [
               CustomAppHeader(title: 'maqraa_title'.tr(context)),
               Expanded(
                 child: RefreshIndicator(
-                  onRefresh: () async => context.read<RatingsCubit>().checkStatus(),
+                  onRefresh: () async =>
+                      context.read<RatingsCubit>().checkStatus(),
                   color: ColorsManager.primaryColor,
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
@@ -135,7 +154,7 @@ class _RatingsScreenState extends State<RatingsScreen> {
 
   Widget _buildSessionCard(BuildContext context, SessionItem session) {
     bool isEnded = session.isEnded;
-    
+
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -158,7 +177,10 @@ class _RatingsScreenState extends State<RatingsScreen> {
               Expanded(
                 child: Text(
                   session.title,
-                  style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: ColorsManager.primaryColor),
+                  style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                      color: ColorsManager.primaryColor),
                 ),
               ),
               _statusChip(context, session.status),
@@ -191,12 +213,63 @@ class _RatingsScreenState extends State<RatingsScreen> {
               ),
               if (!isEnded)
                 ElevatedButton(
-                  onPressed: () => context.read<RatingsCubit>().startMaqraa(session),
+                  onPressed: () =>
+                      context.read<RatingsCubit>().startMaqraa(session),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: ColorsManager.primaryColor,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.r)),
                   ),
-                  child: Text('start_session'.tr(context), style: const TextStyle(color: Colors.white)),
+                  child: Text('start_session'.tr(context),
+                      style: const TextStyle(color: Colors.white)),
+                )
+              else
+                TextButton.icon(
+                  onPressed: () {
+                    final recordCubit = getIt<RecordCubit>();
+                    // Try to find a matching session in records by title/trackName or time
+                    final recordedSession = recordCubit.state is RecordLoaded
+                        ? (recordCubit.state as RecordLoaded)
+                            .sessions
+                            .firstWhere(
+                              (s) =>
+                                  s.trackName == session.title ||
+                                  s.studentName == session.title,
+                              orElse: () => SessionModel(
+                                studentName: session.title,
+                                date: session.startAt.split('T')[0],
+                                time: session.startAt
+                                    .split('T')[1]
+                                    .substring(0, 5),
+                                duration:
+                                    '${session.durationMinutes} ${'minutes_label'.tr(context)}',
+                                trackName: 'maqraa_session'.tr(context),
+                                status: 'ended'.tr(context),
+                                notes: '',
+                                nextAssignment: '',
+                                rating: '',
+                                isPresent: true,
+                              ),
+                            )
+                        : null;
+
+                    if (recordedSession != null &&
+                        recordedSession.notes.isNotEmpty) {
+                      Navigator.pushNamed(
+                        context,
+                        Routes.sessionDetails,
+                        arguments: recordedSession,
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('no_report_available'.tr(context))),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.assignment_outlined, size: 18),
+                  label: Text('view_report'.tr(context),
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
                 ),
             ],
           ),
@@ -208,7 +281,7 @@ class _RatingsScreenState extends State<RatingsScreen> {
   Widget _statusChip(BuildContext context, String status) {
     Color color;
     String label;
-    
+
     switch (status) {
       case 'ongoing':
         color = Colors.green;
@@ -236,9 +309,9 @@ class _RatingsScreenState extends State<RatingsScreen> {
       ),
       child: Text(
         label,
-        style: TextStyle(color: color, fontSize: 12.sp, fontWeight: FontWeight.bold),
+        style: TextStyle(
+            color: color, fontSize: 12.sp, fontWeight: FontWeight.bold),
       ),
     );
   }
 }
-

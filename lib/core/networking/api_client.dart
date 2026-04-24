@@ -11,8 +11,9 @@ class ApiClient {
     final dio = Dio(
       BaseOptions(
         baseUrl: ApiConstants.baseUrl,
-        connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(seconds: 30),
+        connectTimeout: const Duration(seconds: 45),
+        receiveTimeout: const Duration(seconds: 45),
+        sendTimeout: const Duration(seconds: 45),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -20,38 +21,54 @@ class ApiClient {
       ),
     );
 
-    // ── تجاوز فحص شهادة SSL للأجهزة الحقيقية ──────────────────
-    // استخدام adapter مستقر لمنع التعليق في عمليات الـ Handshake
-    if (dio.httpClientAdapter is IOHttpClientAdapter) {
+    // ── SSL bypass: debug builds only ───────────────────────────
+    if (kDebugMode && dio.httpClientAdapter is IOHttpClientAdapter) {
       (dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
         final client = HttpClient();
-        // مهلة اتصال قصيرة لمنع الانتظار اللانهائي في حالة فشل الـ Handshake
-        client.connectionTimeout = const Duration(seconds: 10);
-        client.badCertificateCallback = 
+        client.connectionTimeout = const Duration(seconds: 15);
+        client.badCertificateCallback =
             (X509Certificate cert, String host, int port) => true;
         return client;
       };
     }
 
-    // Auth interceptor — injects Bearer token
+    // ── Auth interceptor ─────────────────────────────────────────
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          final token = SharedPreferencesService.getToken()?.trim();
-          if (token != null) {
-            options.headers['Authorization'] = 'Bearer $token';
+          if (options.extra['no_auth'] != true) {
+            final token = SharedPreferencesService.getToken()?.trim();
+            if (token != null) {
+              options.headers['Authorization'] = 'Bearer $token';
+            }
           }
           handler.next(options);
+        },
+        onError: (DioException err, handler) async {
+          // Retry once on connection errors (transient network issues)
+          final isRetry = err.requestOptions.extra['_retried'] == true;
+          final isConnError = err.type == DioExceptionType.connectionError ||
+              err.type == DioExceptionType.connectionTimeout ||
+              err.type == DioExceptionType.receiveTimeout;
+          if (!isRetry && isConnError) {
+            err.requestOptions.extra['_retried'] = true;
+            try {
+              final retryResponse = await dio.fetch(err.requestOptions);
+              return handler.resolve(retryResponse);
+            } catch (_) {
+              // fall through to original error
+            }
+          }
+          handler.next(err);
         },
       ),
     );
 
-    // Pretty logger for debugging — only in debug mode to save resources in APK
-    // Added AFTER auth interceptor so we can see the Authorization header in logs
+    // ── Pretty logger: debug only ────────────────────────────────
     if (kDebugMode) {
       dio.interceptors.add(
         PrettyDioLogger(
-          requestHeader: true,
+          requestHeader: false,
           requestBody: true,
           responseBody: true,
           responseHeader: false,

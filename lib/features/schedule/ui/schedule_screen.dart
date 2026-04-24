@@ -9,16 +9,16 @@ import 'package:waratel_app/features/localization/data/app_localizations.dart';
 import 'package:waratel_app/features/schedule/logic/cubit/schedule_state.dart';
 import 'package:waratel_app/features/schedule/logic/cubit/schedule_cubit.dart';
 import 'package:waratel_app/features/schedule/data/models/schedule_models.dart';
- import 'package:waratel_app/core/di/dependency_injection.dart';
- import 'package:waratel_app/core/widgets/custom_app_header.dart';
+import 'package:waratel_app/core/di/dependency_injection.dart';
+import 'package:waratel_app/core/widgets/custom_app_header.dart';
 
 class ScheduleScreen extends StatelessWidget {
   const ScheduleScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => getIt<ScheduleCubit>()..loadSchedule(),
+    return BlocProvider.value(
+      value: getIt<ScheduleCubit>()..loadSchedule(),
       child: BlocConsumer<ScheduleCubit, ScheduleState>(
         listener: (context, state) {
           if (state is DeleteSlotSuccess) {
@@ -47,14 +47,16 @@ class ScheduleScreen extends StatelessWidget {
             CustomAppHeader(title: 'schedule_title'.tr(context)),
             Expanded(
               child: RefreshIndicator(
-                onRefresh: () async => context.read<ScheduleCubit>().loadSchedule(),
+                onRefresh: () async =>
+                    context.read<ScheduleCubit>().loadSchedule(),
                 color: ColorsManager.primaryColor,
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   child: Container(
                     width: double.infinity,
                     decoration: const BoxDecoration(color: Colors.white),
-                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
                     child: Column(
                       children: [
                         // Warning Cards
@@ -75,24 +77,31 @@ class ScheduleScreen extends StatelessWidget {
                         ),
                         SizedBox(height: 20.h),
                         // State handling
-                        if (state is ScheduleLoading || state is DeleteSlotLoading)
+                        if (state is ScheduleLoading ||
+                            state is DeleteSlotLoading)
                           SizedBox(
                             height: 200.h,
-                            child: const Center(child: CircularProgressIndicator()),
+                            child: const Center(
+                                child: CircularProgressIndicator()),
                           )
-                        else if (state is ScheduleLoaded && state.calendar.isNotEmpty)
+                        else if (state is ScheduleLoaded &&
+                            state.calendar.isNotEmpty)
                           _buildCalendarList(context, state)
                         else if (state is ScheduleError)
                           Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.error_outline, size: 48.sp, color: Colors.red),
+                                Icon(Icons.error_outline,
+                                    size: 48.sp, color: Colors.red),
                                 SizedBox(height: 10.h),
-                                Text(state.error, style: TextStyle(fontSize: 14.sp)),
+                                Text(state.error,
+                                    style: TextStyle(fontSize: 14.sp)),
                                 SizedBox(height: 10.h),
                                 ElevatedButton(
-                                  onPressed: () => context.read<ScheduleCubit>().loadSchedule(),
+                                  onPressed: () => context
+                                      .read<ScheduleCubit>()
+                                      .loadSchedule(),
                                   child: Text('retry'.tr(context)),
                                 ),
                               ],
@@ -104,7 +113,8 @@ class ScheduleScreen extends StatelessWidget {
                             message: 'no_scheduled_appointments'.tr(context),
                             subMessage: 'regular_students_benefit'.tr(context),
                           ),
-                        if (state is! ScheduleLoading && state is! DeleteSlotLoading) ...[
+                        if (state is! ScheduleLoading &&
+                            state is! DeleteSlotLoading) ...[
                           SizedBox(height: 10.h),
                           // Add Button
                           SizedBox(
@@ -112,7 +122,8 @@ class ScheduleScreen extends StatelessWidget {
                             height: 50.h,
                             child: ElevatedButton(
                               onPressed: () async {
-                                final result = await Navigator.pushNamed(context, '/addAppointment');
+                                final result = await Navigator.pushNamed(
+                                    context, '/addAppointment');
                                 if (result == true && context.mounted) {
                                   context.read<ScheduleCubit>().loadSchedule();
                                 }
@@ -121,13 +132,17 @@ class ScheduleScreen extends StatelessWidget {
                                 backgroundColor: Colors.white,
                                 foregroundColor: ColorsManager.primaryColor,
                                 side: BorderSide(
-                                    color: ColorsManager.primaryColor.withValues(alpha: 0.1)),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.r)),
+                                    color: ColorsManager.primaryColor
+                                        .withValues(alpha: 0.1)),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(25.r)),
                                 elevation: 0,
                               ),
                               child: Text(
                                 'add_appointments_now'.tr(context),
-                                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                    fontSize: 16.sp,
+                                    fontWeight: FontWeight.bold),
                               ),
                             ),
                           ),
@@ -155,7 +170,9 @@ class ScheduleScreen extends StatelessWidget {
       itemBuilder: (context, index) {
         final date = sortedDates[index];
         final slots = state.calendar[date]!;
-        return _buildDayCard(context, date, slots);
+        return RepaintBoundary(
+          child: _buildDayCard(context, date, slots),
+        );
       },
     );
   }

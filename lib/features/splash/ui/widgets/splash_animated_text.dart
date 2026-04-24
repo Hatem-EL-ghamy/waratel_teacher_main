@@ -63,8 +63,8 @@ class SplashAnimatedText extends StatelessWidget {
             height: 1.2,
             shadows: [
               Shadow(
-                color:
-                    const Color.fromARGB(255, 228, 226, 226).withValues(alpha: 0.3),
+                color: const Color.fromARGB(255, 228, 226, 226)
+                    .withValues(alpha: 0.3),
                 offset: const Offset(0, 4),
                 blurRadius: 10,
               ),
@@ -109,7 +109,8 @@ class SplashAnimatedText extends StatelessWidget {
         gradient: LinearGradient(
           colors: [
             Colors.transparent,
-            ColorsManager.accentColor.withValues(alpha: 0.4), // درجة ذهبية هادئة جداً
+            ColorsManager.accentColor
+                .withValues(alpha: 0.4), // درجة ذهبية هادئة جداً
             Colors.transparent,
           ],
         ),
@@ -130,7 +131,8 @@ class SplashAnimatedText extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(25),
         border: Border.all(
-          color: ColorsManager.accentColor.withValues(alpha: 0.2), // إطار خفيف جداً
+          color: ColorsManager.accentColor
+              .withValues(alpha: 0.2), // إطار خفيف جداً
           width: 1,
         ),
         boxShadow: [

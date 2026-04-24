@@ -49,5 +49,10 @@
 	<string>نحتاج الوصول للكاميرا لمكالمات الفيديو في المقرأة والحصص</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>نحتاج الوصول للميكروفون للمكالمات الصوتية في المقرأة والحصص</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>https</string>
+		<string>http</string>
+	</array>
 </dict>
 </plist>

@@ -19,18 +19,19 @@ import 'package:waratel_app/features/ratings/ui/ratings_screen.dart';
 import 'package:waratel_app/features/bookings/ui/bookings_screen.dart';
 import 'package:waratel_app/features/schedule/ui/schedule_screen.dart';
 import 'package:waratel_app/features/wallet/ui/wallet_screen.dart';
-import 'package:waratel_app/features/bot_chat/ui/gemini_chat_screen.dart';
+import 'package:waratel_app/features/ai_chat/ui/ai_chat_screen.dart';
 import 'package:waratel_app/features/bookings/logic/cubit/bookings_cubit.dart';
+import 'package:waratel_app/features/notifications/logic/cubit/notifications_cubit.dart';
 
 // ── Screens are kept here (UI layer), NOT inside HomeCubit ──────────────────
 // This is a fixed list; it never changes — all five widgets are created once
 // and kept alive by IndexedStack, so switching tabs has zero rebuild cost.
 const List<Widget> _kScreens = [
-  HomeScreen(),     // 0 — الرئيسية
-  ScheduleScreen(), // 1 — جدولي
-  BookingsScreen(), // 2 — جلساتي
-  RatingsScreen(),  // 3 — المقرأة
-  WalletScreen(),   // 4 — المحفظة
+  RepaintBoundary(child: HomeScreen()), // 0 — الرئيسية
+  RepaintBoundary(child: ScheduleScreen()), // 1 — جدولي
+  RepaintBoundary(child: BookingsScreen()), // 2 — جلساتي
+  RepaintBoundary(child: RatingsScreen()), // 3 — المقرأة
+  RepaintBoundary(child: WalletScreen()), // 4 — المحفظة
 ];
 
 class HomeLayout extends StatefulWidget {
@@ -46,29 +47,35 @@ class _HomeLayoutState extends State<HomeLayout> {
     super.initState();
     // 📞 Start listening to calls only after the layout is initialized
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      debugPrint('🏠 [HOME LAYOUT] Deferring CallService listeners and data load...');
+      debugPrint(
+          '🏠 [HOME LAYOUT] Deferring CallService listeners and data load...');
       // 1. Listen for calls using the DI instance
       CallService.listenToCallEvents(getIt<CallApiService>());
-      
+
       // 2. Load initial data with staggered delays to prevent SSL/Network contention
       Future.delayed(const Duration(milliseconds: 300), () async {
         if (!mounted) return;
         debugPrint('🏠 [HOME LAYOUT] Starting staggered data load...');
-        
+
         // 2.1 Load Profile
         getIt<ProfileCubit>().getProfile();
         await Future.delayed(const Duration(milliseconds: 200));
-        
+
         // 2.2 Load Ads (Already handled by BlocProvider create)
         // if (mounted) context.read<AdsCubit>().getAds();
         // await Future.delayed(const Duration(milliseconds: 200));
 
-        // 2.3 Load Soon Booking
+        // 2.3 Load Soon Booking & Ads
         if (mounted) getIt<HomeCubit>().loadSoon();
+        await Future.delayed(const Duration(milliseconds: 200));
+        if (mounted) getIt<AdsCubit>().getAds();
         await Future.delayed(const Duration(milliseconds: 200));
 
         // 2.4 Load Online Status
         if (mounted) getIt<HomeCubit>().getInitialOnlineStatus();
+
+        // 2.5 Load Notifications
+        if (mounted) getIt<NotificationsCubit>().loadNotifications();
       });
     });
   }
@@ -79,8 +86,9 @@ class _HomeLayoutState extends State<HomeLayout> {
       providers: [
         BlocProvider.value(value: getIt<HomeCubit>()),
         BlocProvider.value(value: getIt<ProfileCubit>()),
-        BlocProvider(create: (_) => getIt<AdsCubit>()..getAds()),
-        BlocProvider(create: (_) => getIt<BookingsCubit>()),
+        BlocProvider.value(value: getIt<NotificationsCubit>()),
+        BlocProvider.value(value: getIt<AdsCubit>()),
+        BlocProvider.value(value: getIt<BookingsCubit>()),
       ],
       child: BlocListener<ProfileCubit, ProfileState>(
         listener: (context, state) {
@@ -121,7 +129,7 @@ class _HomeLayoutState extends State<HomeLayout> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const GeminiChatScreen(),
+                        builder: (context) => const AiChatScreen(),
                       ),
                     );
                   },
@@ -146,11 +154,12 @@ class _BottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
+        color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
+            color: Colors.black.withValues(alpha: 0.07),
+            blurRadius: 12,
+            offset: const Offset(0, -3),
           ),
         ],
       ),
@@ -158,16 +167,23 @@ class _BottomNav extends StatelessWidget {
         currentIndex: cubit.currentIndex,
         onTap: cubit.changeBottomNav,
         type: BottomNavigationBarType.fixed,
-        backgroundColor: ColorsManager.primaryColor,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white70,
-        selectedLabelStyle:
-            TextStyle(fontWeight: FontWeight.bold, fontSize: 12.sp),
-        unselectedLabelStyle: TextStyle(fontSize: 12.sp),
+        backgroundColor: Colors.white,
+        selectedItemColor: ColorsManager.primaryColor,
+        unselectedItemColor: ColorsManager.textSecondaryColor,
+        elevation: 0,
+        selectedLabelStyle: TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 11.sp,
+          fontFamily: 'Cairo',
+        ),
+        unselectedLabelStyle: TextStyle(
+          fontSize: 11.sp,
+          fontFamily: 'Cairo',
+        ),
         items: [
           BottomNavigationBarItem(
             icon: const Icon(Icons.home_outlined),
-            activeIcon: const Icon(Icons.home),
+            activeIcon: const Icon(Icons.home_rounded),
             label: 'home'.tr(context),
           ),
           BottomNavigationBarItem(
@@ -176,8 +192,8 @@ class _BottomNav extends StatelessWidget {
             label: 'schedule'.tr(context),
           ),
           BottomNavigationBarItem(
-            icon: const Icon(Icons.assignment_turned_in_outlined),
-            activeIcon: const Icon(Icons.assignment_turned_in),
+            icon: const Icon(Icons.assignment_outlined),
+            activeIcon: const Icon(Icons.assignment),
             label: 'sessions'.tr(context),
           ),
           BottomNavigationBarItem(

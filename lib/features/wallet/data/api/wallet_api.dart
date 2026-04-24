@@ -25,21 +25,26 @@ class WalletApi {
         'account_number': accountNumber,
       },
     );
-    return WithdrawRequestResponse.fromJson(response.data as Map<String, dynamic>);
+    return WithdrawRequestResponse.fromJson(
+        response.data as Map<String, dynamic>);
   }
 
-  Future<WithdrawalHistoryResponse> getWithdrawalRequests({int page = 1}) async {
+  Future<WithdrawalHistoryResponse> getWithdrawalRequests(
+      {int page = 1}) async {
     final response = await _dio.get(
       ApiConstants.teacherWalletRequests,
       queryParameters: {'page': page},
     );
-    return WithdrawalHistoryResponse.fromJson(response.data as Map<String, dynamic>);
+    return WithdrawalHistoryResponse.fromJson(
+        response.data as Map<String, dynamic>);
   }
 
-  Future<CancelWithdrawalResponse> cancelWithdrawalRequest(int requestId) async {
+  Future<CancelWithdrawalResponse> cancelWithdrawalRequest(
+      int requestId) async {
     final response = await _dio.delete(
       ApiConstants.teacherCancelWalletRequest(requestId),
     );
-    return CancelWithdrawalResponse.fromJson(response.data as Map<String, dynamic>);
+    return CancelWithdrawalResponse.fromJson(
+        response.data as Map<String, dynamic>);
   }
 }

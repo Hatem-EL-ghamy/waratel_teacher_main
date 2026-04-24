@@ -49,7 +49,9 @@ class SessionModel {
       notes: json['notes']?.toString() ?? '',
       nextAssignment: json['nextAssignment']?.toString() ?? '',
       rating: json['rating']?.toString() ?? '',
-      isPresent: json['isPresent'] == true,
+      isPresent: json['isPresent'] == true ||
+          json['isPresent'] == 'true' ||
+          json['isPresent'] == 1,
     );
   }
 }

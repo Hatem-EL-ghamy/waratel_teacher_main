@@ -21,8 +21,12 @@ class SlotModel {
 
   factory SlotModel.fromJson(Map<String, dynamic> json) {
     return SlotModel(
-      id: (json['id'] is int) ? json['id'] : int.tryParse(json['id'].toString()) ?? 0,
-      teacherId: (json['teacher_id'] is int) ? json['teacher_id'] : int.tryParse(json['teacher_id'].toString()) ?? 0,
+      id: (json['id'] is int)
+          ? json['id']
+          : int.tryParse(json['id'].toString()) ?? 0,
+      teacherId: (json['teacher_id'] is int)
+          ? json['teacher_id']
+          : int.tryParse(json['teacher_id'].toString()) ?? 0,
       date: (json['date'] ?? '').toString(),
       startTime: (json['start_time'] ?? '').toString(),
       endTime: (json['end_time'] ?? '').toString(),
@@ -30,6 +34,18 @@ class SlotModel {
       createdAt: (json['created_at'] ?? '').toString(),
       updatedAt: (json['updated_at'] ?? '').toString(),
     );
+  }
+
+  bool get isPast {
+    try {
+      // Ensure time has seconds for consistent DateTime parsing if it only has hour:minute
+      final timeParts = endTime.split(':');
+      final timeStr = timeParts.length == 2 ? '$endTime:00' : endTime;
+      final endDateTime = DateTime.parse('$date $timeStr');
+      return DateTime.now().isAfter(endDateTime);
+    } catch (e) {
+      return false; // fallback
+    }
   }
 }
 
@@ -80,8 +96,10 @@ class MySlotsData {
     }
 
     SlotsPagination? pagination;
-    if (json['pagination'] != null && json['pagination'] is Map<String, dynamic>) {
-      pagination = SlotsPagination.fromJson(json['pagination'] as Map<String, dynamic>);
+    if (json['pagination'] != null &&
+        json['pagination'] is Map<String, dynamic>) {
+      pagination =
+          SlotsPagination.fromJson(json['pagination'] as Map<String, dynamic>);
     }
 
     return MySlotsData(
@@ -117,10 +135,24 @@ class SlotsPagination {
   }
 }
 
+class AddSlotsData {
+  final int addedCount;
+  final String date;
+
+  const AddSlotsData({required this.addedCount, required this.date});
+
+  factory AddSlotsData.fromJson(Map<String, dynamic> json) {
+    return AddSlotsData(
+      addedCount: int.tryParse(json['added_count'].toString()) ?? 0,
+      date: (json['date'] ?? '').toString(),
+    );
+  }
+}
+
 class AddSlotsResponse {
   final bool status;
   final String message;
-  final dynamic data;
+  final AddSlotsData? data;
 
   const AddSlotsResponse({
     required this.status,
@@ -132,7 +164,9 @@ class AddSlotsResponse {
     return AddSlotsResponse(
       status: json['status'] == true,
       message: (json['message'] ?? '').toString(),
-      data: json['data'],
+      data: json['data'] != null && json['data'] is Map<String, dynamic>
+          ? AddSlotsData.fromJson(json['data'] as Map<String, dynamic>)
+          : null,
     );
   }
 }
@@ -154,10 +188,24 @@ class DeleteSlotResponse {
   }
 }
 
+class DeleteSlotsByDayData {
+  final int deletedCount;
+  final String date;
+
+  const DeleteSlotsByDayData({required this.deletedCount, required this.date});
+
+  factory DeleteSlotsByDayData.fromJson(Map<String, dynamic> json) {
+    return DeleteSlotsByDayData(
+      deletedCount: int.tryParse(json['deleted_count'].toString()) ?? 0,
+      date: (json['date'] ?? '').toString(),
+    );
+  }
+}
+
 class DeleteSlotsByDayResponse {
   final bool status;
   final String message;
-  final dynamic data;
+  final DeleteSlotsByDayData? data;
 
   const DeleteSlotsByDayResponse({
     required this.status,
@@ -169,7 +217,9 @@ class DeleteSlotsByDayResponse {
     return DeleteSlotsByDayResponse(
       status: json['status'] == true,
       message: (json['message'] ?? '').toString(),
-      data: json['data'],
+      data: json['data'] != null && json['data'] is Map<String, dynamic>
+          ? DeleteSlotsByDayData.fromJson(json['data'] as Map<String, dynamic>)
+          : null,
     );
   }
 }
