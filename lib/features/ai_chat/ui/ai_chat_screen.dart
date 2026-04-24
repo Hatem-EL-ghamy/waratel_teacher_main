@@ -25,7 +25,7 @@ class _AiChatScreenState extends State<AiChatScreen>
   int _selectedCategory = 0;
 
   // مفتاح Groq API
-  static const String _apiKey = ApiConstants.groqApiKey;
+  static final String _apiKey = ApiConstants.groqApiKey;
 
   static const List<Map<String, dynamic>> _categories = [
     {'label': 'التجويد', 'icon': Icons.menu_book_rounded},

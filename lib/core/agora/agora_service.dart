@@ -25,7 +25,7 @@ class AgoraService {
 
     _engine = createAgoraRtcEngine();
 
-    await _engine!.initialize(const RtcEngineContext(
+    await _engine!.initialize(RtcEngineContext(
       appId: ApiConstants.agoraAppId,
       channelProfile: ChannelProfileType.channelProfileCommunication,
       audioScenario: AudioScenarioType.audioScenarioDefault,

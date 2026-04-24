@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import '../../../../core/cache/shared_preferences.dart';
 import '../../../../core/networking/base_repository.dart';
